@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "mcpacman"
+version = "0.0.1"
+description = "Package manager for Minecraft datapacks and resourcepacks"
+authors = ["Ben Mitchell <bjosephmitchell@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "^2.25.1"
+argparse = "^1.4.0"
+colorama = "^0.4.4"
+pathlib = "^1.0.1"
+tqdm = "^4.56.0"
+
+[tool.poetry.dev-dependencies]
+autopep8 = "^1.5.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
