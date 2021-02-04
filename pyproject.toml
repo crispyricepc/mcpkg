@@ -16,6 +16,9 @@ tqdm = "^4.56.0"
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.5"
 
+[tool.poetry.scripts]
+mcpkg = "mcpkg:cli.main"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
