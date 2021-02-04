@@ -64,6 +64,7 @@ def list(compact: bool):
 
 def search(expression: str):
     packlist = syncdb.get_local_pack_list()
+    log("Searching:", "info")
     for packname in packlist.keys():
         if re.search(expression, packname):
             print_pack(packlist[packname], packname, False)
