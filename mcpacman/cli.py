@@ -53,7 +53,7 @@ def list(compact: bool):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="mcpacman")
+    parser = argparse.ArgumentParser(prog="mcpkg")
     add_subs(parser)
     add_opts(parser)
     args = parser.parse_args()

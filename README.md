@@ -1,4 +1,4 @@
-# MCPacman
+# mcpkg
 
 Package manager for Minecraft datapacks and resourcepacks
 
@@ -6,15 +6,15 @@ Package manager for Minecraft datapacks and resourcepacks
 
 ### The cross-platform way
 
-The easiset and most recommended way to install MCPacman is with `pip`
+The easiset and most recommended way to install mcpkg is with `pip`
 
 ```sh
-pip install mcpacman
+pip install mcpkg
 ```
 
 ## Developing on VSCode
 
-MCPacman uses poetry; a Python virtual environment. To make sure you're running in the virtual environment, run:
+mcpkg uses poetry; a Python virtual environment. To make sure you're running in the virtual environment, run:
 
 ```sh
 poetry show -v

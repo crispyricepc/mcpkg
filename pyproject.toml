@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "mcpacman"
+name = "mcpkg"
 version = "0.0.1"
 description = "Package manager for Minecraft datapacks and resourcepacks"
 authors = ["Ben Mitchell <bjosephmitchell@gmail.com>"]

@@ -45,7 +45,7 @@ def vt_to_packdb(src: Path, dst: Path):
     """
     Converts a vanilla tweaks JSON metadata file into a compatible list of packs.
     - src: The path to the vanilla tweaks metadata
-    - dst: The path to the new pack list (usually ~/.config/mcpacman/packs.json)
+    - dst: The path to the new pack list (usually ~/.config/mcpkg/packs.json)
     """
     src_dict = json.load(src.open())
     new_dict = {}
