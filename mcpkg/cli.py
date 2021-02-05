@@ -2,6 +2,7 @@ from typing import Any
 from . import config
 from . import syncdb
 from .logger import log
+from .constants import LogLevel
 
 import argparse
 from colorama import Fore
@@ -57,14 +58,14 @@ def upgrade():
 
 def list(compact: bool):
     packlist = syncdb.get_local_pack_list()
-    log("Listing packs:", "info")
+    log("Listing packs:", LogLevel.INFO)
     for packname in packlist.keys():
         print_pack(packlist[packname], packname, compact)
 
 
 def search(expression: str):
     packlist = syncdb.get_local_pack_list()
-    log("Searching:", "info")
+    log("Searching:", LogLevel.INFO)
     for packname in packlist.keys():
         if re.search(expression, packname):
             print_pack(packlist[packname], packname, False)

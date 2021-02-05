@@ -1,5 +1,6 @@
 from . import config
 from .logger import log
+from .constants import LogLevel
 
 import tempfile
 import requests
@@ -36,9 +37,9 @@ def dl_with_progress(url: str, dst: str, display: str):
             progress_bar.update(len(data))
             file.write(data)
     progress_bar.close()
-    log(f"'{url}' saved to '{dst}', status code {response.status_code}", "debug")
+    log(f"'{url}' saved to '{dst}', status code {response.status_code}", LogLevel.DEBUG)
     if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-        log("Printing the fancy progress bar caused an issue, it's probably okay to ignore this", "warn")
+        log("Printing the fancy progress bar caused an issue, it's probably okay to ignore this", LogLevel.WARN)
 
 
 def vt_to_packdb(src: Path, dst: Path):
@@ -79,12 +80,12 @@ def fetch_pack_list():
     dl_with_progress(
         CT_URL, filename, f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading crafting tweak metadata")
     vt_to_packdb(Path(filename), PACK_DB)
-    log("Fetch complete", "info")
+    log("Fetch complete", LogLevel.INFO)
 
 
 def get_local_pack_list() -> dict[str, dict[str, Any]]:
     if not PACK_DB.exists():
-        log("Can't find a locally stored packdb.json. Attempting to fetch now...", "warn")
+        log("Can't find a locally stored packdb.json. Attempting to fetch now...", LogLevel.WARN)
         fetch_pack_list()
 
     return json.load(PACK_DB.open(mode="r"))

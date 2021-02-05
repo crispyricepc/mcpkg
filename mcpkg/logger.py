@@ -1,21 +1,11 @@
-from . import config
 import sys
-from colorama import Fore, Style
+
+from mcpkg import config
+from mcpkg.constants import LogLevel
 
 
-def log(msg: str, type: str):
-    file = sys.stderr
-    if type == "debug":
-        if not config.verbose:
-            return
-        pre = f"[{Fore.BLUE}DEBUG{Style.RESET_ALL}]"
-    elif type == "info":
-        pre = f"[{Fore.GREEN}INFO{Style.RESET_ALL}]"
-    elif type == "warn":
-        pre = f"[{Fore.YELLOW}WARN{Style.RESET_ALL}]"
-    elif type == "error":
-        pre = f"[{Fore.RED}ERROR{Style.RESET_ALL}]"
-    else:
+def log(message: str, level: LogLevel) -> None:
+    """Log a provided message to stderr."""
+    if level is LogLevel.DEBUG and not config.verbose:
         return
-
-    print(f"{pre} {msg}", file=file)
+    print(f"{level.value} {message}", file=sys.stderr)
