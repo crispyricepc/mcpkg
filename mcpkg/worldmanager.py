@@ -1,56 +1,58 @@
 import json
 from pathlib import Path
+from typing import Final
 
 from .constants import LogLevel
 from .logger import log
 
 
-def directory_is_a_world(dir: Path) -> bool:
+WORLD_FILES: Final[tuple[str, ...]] = (
+    "advancements", "data", "datapacks", "level.dat", "playerdata", "region", "stats"
+)
+
+
+def directory_is_a_world(directory: Path) -> bool:
     """Returns true if the given directory is a Minecraft world"""
     # Considered the traits that are necessary for a Minecraft world
-    return ((dir).exists()
-            and (dir / "advancements").exists()
-            and (dir / "data").exists()
-            and (dir / "datapacks").exists()
-            and (dir / "level.dat").exists()
-            and (dir / "playerdata").exists()
-            and (dir / "region").exists()
-            and (dir / "stats").exists())
+    return all((directory / path).exists() for path in WORLD_FILES)
 
 
-def get_datapacks_dir(dir: Path) -> Path:
+def get_datapacks_dir(directory: Path) -> Path:
     """
     Returns the path to the datapacks folder for the given directory
 
     Raises `SystemExit` if the current working directory is not valid
     """
     # Is a server
-    if (dir / "eula.txt").exists() and directory_is_a_world(dir / "world"):
-        return dir / "world" / "datapacks"
+    if (directory / "eula.txt").exists() and directory_is_a_world(directory / "world"):
+        return directory / "world" / "datapacks"
 
     # Is the world folder
-    elif directory_is_a_world(dir):
-        return dir / "datapacks"
+    elif directory_is_a_world(directory):
+        return directory / "datapacks"
 
     # Is a datapacks folder
-    elif dir.name == "datapacks" and directory_is_a_world(dir.parent):
-        return dir
+    elif directory.name == "datapacks" and directory_is_a_world(directory.parent):
+        return directory
 
     else:
         log("A datapacks folder could not be found in the given directory", LogLevel.ERROR)
         raise SystemExit(-1)
 
 
-def get_installed_packs(dir: Path) -> list[dict[str, str]]:
+def get_installed_packs(directory: Path) -> list[dict[str, str]]:
     """
     Returns a list of pack ids installed to the world in the given directory
     """
-    datapack_dir = get_datapacks_dir(dir)
-    if not (datapack_dir / ".packs.json").exists():
+    datapack_dir = get_datapacks_dir(directory)
+    packs_file = datapack_dir / ".packs.json"
+
+    if not packs_file.exists():
         log("This world has no datapacks or is not managed by the tool", LogLevel.WARN)
         return []
 
-    return json.load((datapack_dir / ".packs.json").open())
+    with packs_file.open() as file:
+        return json.load(file)
 
 
 def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str):
