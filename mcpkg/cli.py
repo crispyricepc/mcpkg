@@ -31,6 +31,8 @@ def add_subs(parser: argparse.ArgumentParser):
     list_parser.add_argument("-i", "--installed",
                              help="filter to only installed",
                              action="store_true")
+    list_parser.add_argument("-p", "--path",
+                             help="specify path")
 
     search_parser = subparsers.add_parser("search",
                                           help="search for a package")
@@ -64,9 +66,12 @@ def upgrade():
     pass
 
 
-def list(compact: bool, installed: bool):
+def list(compact: bool, installed: bool, path: Path = Path.cwd()):
     log("Listing packs:", LogLevel.INFO)
-    packlist = syncdb.get_local_pack_list()
+    pack_filter = None
+    if installed:
+        pack_filter = worldmanager.get_installed_packs(path)
+    packlist = syncdb.get_local_pack_list(pack_filter=pack_filter)
     for packname in packlist.keys():
         print_pack(packlist[packname], packname, compact)
 
@@ -96,6 +101,6 @@ def main():
     elif args.command == "upgrade":
         upgrade()
     elif args.command == "list":
-        list(args.compact, args.installed)
+        list(args.compact, args.installed, Path(args.path))
     elif args.command == "search":
         search(args.expression, args.compact)

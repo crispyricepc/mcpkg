@@ -1,6 +1,6 @@
 import sys
 
-from .cli import config
+from . import config
 from .constants import LogLevel
 
 

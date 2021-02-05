@@ -15,7 +15,6 @@ def directory_is_a_world(dir: Path) -> bool:
             and (dir / "datapacks").exists()
             and (dir / "level.dat").exists()
             and (dir / "playerdata").exists()
-            and (dir / "poi").exists()
             and (dir / "region").exists()
             and (dir / "stats").exists())
 
@@ -31,7 +30,7 @@ def get_datapacks_dir(dir: Path) -> Path:
         return dir / "world" / "datapacks"
 
     # Is the world folder
-    elif directory_is_a_world(dir / "datapacks"):
+    elif directory_is_a_world(dir):
         return dir / "datapacks"
 
     # Is a datapacks folder
