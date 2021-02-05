@@ -78,7 +78,7 @@ def list(compact: bool, installed: bool, path: Path = Path.cwd()):
 
 def search(expression: str, compact: bool):
     log("Searching:", LogLevel.INFO)
-    packlist = syncdb.get_local_pack_list([expression])
+    packlist = syncdb.get_local_pack_list([{"name": expression}])
     for packname in packlist.keys():
         print_pack(packlist[packname], packname, compact)
 

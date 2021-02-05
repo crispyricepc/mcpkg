@@ -42,7 +42,7 @@ def get_datapacks_dir(dir: Path) -> Path:
         raise SystemExit()
 
 
-def get_installed_packs(dir: Path) -> list[str]:
+def get_installed_packs(dir: Path) -> list[dict[str, str]]:
     """
     Returns a list of pack ids installed to the world in the given directory
     """

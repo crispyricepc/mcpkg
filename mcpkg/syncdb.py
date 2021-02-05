@@ -87,7 +87,7 @@ def fetch_pack_list() -> None:
     log("Fetch complete", LogLevel.INFO)
 
 
-def get_local_pack_list(pack_filter: list[str] = None) -> dict[str, dict[str, Any]]:
+def get_local_pack_list(pack_filter: list[dict[str, str]] = None) -> dict[str, dict[str, Any]]:
     """
     Gets the local pack list, filtered by the objects in `pack_filter`
     """
@@ -100,10 +100,13 @@ def get_local_pack_list(pack_filter: list[str] = None) -> dict[str, dict[str, An
 
     if pack_filter is not None:
         results = {}
-        for expression in pack_filter:
+        for search_term in pack_filter:
+            expression = search_term["id"]
             for key in packs.keys():
                 if re.search(expression, key, re.IGNORECASE):
                     results[key] = packs[key]
+                    if "version" in search_term:
+                        results[key]["version"] = search_term["version"]
     else:
         results = packs
 
