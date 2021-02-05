@@ -23,7 +23,7 @@ def formalise_name(name: str):
     """
     Removes spaces from a name. Also adds a source identifier i.e. 'back to blocks' becomes 'vanillatweaks.backtoblocks'
     """
-    return name
+    return f"VanillaTweaks.{name.title().replace(' ', '')}"
 
 
 def dl_with_progress(url: str, display: str) -> BytesIO:
