@@ -49,9 +49,13 @@ def add_opts(parser: argparse.ArgumentParser):
                         action="store_true")
 
 
-def print_pack(pack: dict[str, Any], packname: str, compact: bool):
+def print_pack(pack: dict[str, Any], packname: str, compact: bool, colour: bool):
+    blue = green = ""
+    if colour:
+        blue = Fore.BLUE
+        green = Fore.GREEN
     print(
-        f"{Fore.BLUE}{pack['display']}{Fore.RESET} ({Fore.GREEN}{packname}{Fore.RESET}) v.{pack['version']}")
+        f"{blue}{pack['display']}{Fore.RESET} ({green}{packname}{Fore.RESET}) v.{pack['version']}")
     if not compact:
         print(f"\t{pack['description']}")
 
@@ -69,6 +73,10 @@ def upgrade():
 
 
 def list(compact: bool, installed: bool, path: Path = Path.cwd()):
+    if not config.IS_TTY or compact:
+        compact = True
+        log("Pipe detected but --compact not specified, using anyway.", LogLevel.WARN)
+
     log("Listing packs:", LogLevel.INFO)
     pack_filter = None
     if installed:
@@ -77,7 +85,7 @@ def list(compact: bool, installed: bool, path: Path = Path.cwd()):
 
     out_of_date = []
     for packname in packlist.keys():
-        print_pack(packlist[packname], packname, compact)
+        print_pack(packlist[packname], packname, compact, config.IS_TTY)
         if version.parse(syncdb.get_pack_metadata(packname)["version"]) > version.parse(packlist[packname]["version"]):
             out_of_date.append(packname)
 
@@ -91,7 +99,7 @@ def search(expression: str, compact: bool):
     log("Searching:", LogLevel.INFO)
     packlist = syncdb.get_local_pack_list([{"id": expression}])
     for packname in packlist.keys():
-        print_pack(packlist[packname], packname, compact)
+        print_pack(packlist[packname], packname, compact, not config.IS_TTY)
 
 
 def main():

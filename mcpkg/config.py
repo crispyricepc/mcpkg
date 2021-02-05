@@ -16,5 +16,6 @@ elif sys.platform == "win32" or sys.platform == "cygwin" or sys.platform == "mys
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
 MC_BASE_VERSION = "1.16"
+IS_TTY = sys.stdout.isatty()
 
 verbose = False
