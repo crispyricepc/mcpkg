@@ -4,7 +4,12 @@ Package manager for Minecraft datapacks and resourcepacks
 
 ## Installation
 
-### The cross-platform way
+### Dependencies
+
+- **Python 3.9:** If you're on linux or macOS, you should install from your package manager. If you're on Windows, you can install python from [their site](https://www.python.org/)
+- **Python pip:** Installation instructions can be found [here](https://pip.pypa.io/en/stable/installing/)
+
+### Installing the cross-platform way
 
 The easiset and most recommended way to install mcpkg is with `pip`
 
