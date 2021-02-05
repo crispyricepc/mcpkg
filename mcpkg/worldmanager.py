@@ -63,8 +63,7 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str):
                     (doesn't have to be the exact datapacks folder)
     """
     datapack_dir = get_datapacks_dir(dest_dir)
-    installed_pack_path = (datapack_dir /
-                           f"{pack_id}.{version}.zip")
+    installed_pack_path = (datapack_dir / f"{pack_id}.{version}.zip")
 
     log(f"Installing '{source_zip}' to '{installed_pack_path}'",
         LogLevel.DEBUG)
