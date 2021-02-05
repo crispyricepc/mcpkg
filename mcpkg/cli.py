@@ -73,7 +73,7 @@ def upgrade():
 
 
 def list(compact: bool, installed: bool, path: Path = Path.cwd()):
-    if not config.IS_TTY or compact:
+    if not (config.IS_TTY or compact):
         compact = True
         log("Pipe detected but --compact not specified, using anyway.", LogLevel.WARN)
 
