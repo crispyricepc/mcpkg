@@ -63,13 +63,14 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str):
                     (doesn't have to be the exact datapacks folder)
     """
     datapack_dir = get_datapacks_dir(dest_dir)
+    packs_file = datapack_dir / ".packs.json"
     installed_pack_path = (datapack_dir / f"{pack_id}.{version}.zip")
 
     log(f"Installing '{source_zip}' to '{installed_pack_path}'",
         LogLevel.DEBUG)
     source_zip.rename(installed_pack_path)
 
-    log(f"Creating new managed entry in '{datapack_dir / '.packs.json'}'",
+    log(f"Creating new managed entry in '{packs_file}'",
         LogLevel.DEBUG)
     installed_packs = get_installed_packs(dest_dir)
     installed_packs.append({
@@ -77,4 +78,5 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str):
         "version": version,
         "location": str(installed_pack_path)
     })
-    json.dump(installed_packs, (datapack_dir / ".packs.json").open("w"))
+    with packs_file.open("w") as file:
+        json.dump(installed_packs, file)
