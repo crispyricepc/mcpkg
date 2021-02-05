@@ -42,16 +42,34 @@ def download_packs(pack_ids: list[str]) -> list[Path]:
     ```
     """
     paths = []
-    request_data = {"packs": {}}
+    request_packs = {}
     for pack_id in pack_ids:
         pack = get_pack_metadata(pack_id)
-        # Category name
-        if pack["tags"][0] not in request_data["packs"]:
-            request_data["packs"][pack["tags"][0]] = []
+        category_name = pack["tags"][0].lower()
+        if category_name not in request_packs:
+            request_packs[category_name] = []
 
-        request_data["packs"][pack["tags"][0]].append(pack["remoteName"])
+        request_packs[category_name].append(pack["remoteName"])
 
-    log(f"Request data: {request_data}", LogLevel.DEBUG)
+    url = f"{VT_URL}assets/server/zipcraftingtweaks.php"
+    request_data = {"packs": json.dumps(request_packs), "version": "1.16"}
+    # Prep the request (allows for more verbose debug output)
+    prep_request = requests.Request('POST',
+                                    url,
+                                    data=request_data).prepare()
+    log(f"Sending request: '{prep_request.body}'' to '{url}'", LogLevel.DEBUG)
+    log(f"Request payload: {request_data}", LogLevel.DEBUG)
+
+    s = requests.Session()
+    res = s.send(prep_request)
+
+    response_message = json.loads(res.text)
+    if response_message["status"] == "error":
+        log(f"""Couldn't get packs!
+\tResponse from {url}: {response_message['message']}
+\tFor more details, it's recommended to turn on verbose mode with either the --verbose flag or setting mcpkg.config.verbose = True""",
+            LogLevel.ERROR)
+        raise SystemExit(-1)
 
     return paths
 

@@ -1,5 +1,4 @@
 import argparse
-import re
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +15,9 @@ def add_subs(parser: argparse.ArgumentParser):
 
     install_parser = subparsers.add_parser("install",
                                            help="installs a new package")
-    install_parser.add_argument("pkgname", help="the name of the package")
+    install_parser.add_argument("pkgname",
+                                help="the name of the package",
+                                nargs="+")
 
     subparsers.add_parser("update",
                           help="updates the package database from Vanilla Tweaks")
@@ -55,8 +56,8 @@ def print_pack(pack: dict[str, Any], packname: str, compact: bool):
         print(f"\t{pack['description']}")
 
 
-def install():
-    pass
+def install(packs: list[str]):
+    syncdb.download_packs(packs)
 
 
 def update():
@@ -105,7 +106,7 @@ def main():
 
     # Switch args
     if args.command == "install":
-        install()
+        install(args.pkgname)
     elif args.command == "update":
         update()
     elif args.command == "upgrade":
