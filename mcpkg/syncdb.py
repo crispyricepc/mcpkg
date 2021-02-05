@@ -23,7 +23,7 @@ pack_data = {}
 
 def formalise_name(name: str):
     """
-    Removes spaces from a name. Also adds a source identifier i.e. 'back to blocks' becomes 'vanillatweaks.backtoblocks'
+    Removes spaces from a name. Also adds a source identifier i.e. 'back to blocks' becomes 'VanillaTweaks.BackToBlocks'
     """
     return f"VanillaTweaks.{name.title().replace(' ', '')}"
 
