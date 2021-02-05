@@ -39,7 +39,7 @@ def get_datapacks_dir(dir: Path) -> Path:
 
     else:
         log("A datapacks folder could not be found in the given directory", LogLevel.ERROR)
-        raise SystemExit()
+        raise SystemExit(-1)
 
 
 def get_installed_packs(dir: Path) -> list[dict[str, str]]:
