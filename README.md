@@ -20,4 +20,9 @@ mcpkg uses poetry; a Python virtual environment. To make sure you're running in 
 poetry env info -p
 ```
 
-to get the virtual environment path. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> to open the command prompt and run `Python: Select Interpreter` from the options. Paste the virtual environment path into the text box with `/bin/python3` appended. Now you should be running in this virtual environment.
+to get the virtual environment path. Then edit `.vscode/settings.json`:
+
+```json
+"python.pythonPath": "<output of poetry env info -p>/bin/python3",
+"python.analysis.stubPath": "<output of poetry env info -p>/lib/python3.9/site-packages",
+```
