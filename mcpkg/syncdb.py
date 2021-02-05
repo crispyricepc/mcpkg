@@ -87,6 +87,18 @@ def fetch_pack_list() -> None:
     log("Fetch complete", LogLevel.INFO)
 
 
+def get_pack_metadata(pack_id: str) -> dict[str, Any]:
+    """
+    Gets the metadata of a given pack
+    """
+    with PACK_DB.open() as file:
+        packs: dict = json.load(file)
+    if pack_id not in packs:
+        log(f"The pack ID '{pack_id}' was not found in the sync database", LogLevel.ERROR)
+        raise SystemExit(-1)
+    return packs[pack_id]
+
+
 def get_local_pack_list(pack_filter: list[dict[str, str]] = None) -> dict[str, dict[str, Any]]:
     """
     Gets the local pack list, filtered by the objects in `pack_filter`
