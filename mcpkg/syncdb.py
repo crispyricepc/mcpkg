@@ -3,7 +3,7 @@ import re
 import tempfile
 from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import requests
 from colorama import Fore
@@ -17,6 +17,8 @@ VT_URL = "https://vanillatweaks.net/"
 DP_URL = f"{VT_URL}assets/resources/json/{config.MC_BASE_VERSION}/dpcategories.json"
 CT_URL = f"{VT_URL}assets/resources/json/{config.MC_BASE_VERSION}/ctcategories.json"
 PACK_DB = config.CONFIG_DIR / "packdb.json"
+
+pack_data = {}
 
 
 def formalise_name(name: str):
@@ -54,6 +56,7 @@ def vt_to_packdb(src: BytesIO, dst: Path) -> None:
     - src: The path to the vanilla tweaks metadata
     - dst: The path to the new pack list (usually ~/.config/mcpkg/packs.json)
     """
+    global pack_data
     src_dict = json.load(src)
     new_dict = {}
     for src_category in src_dict["categories"]:
@@ -71,6 +74,8 @@ def vt_to_packdb(src: BytesIO, dst: Path) -> None:
     if (dst.exists()):
         dst_dict = json.load(dst.open())
         new_dict = dst_dict | new_dict
+
+    pack_data = new_dict
     json.dump(new_dict, dst.open("w"), indent=2, sort_keys=True)
 
 
@@ -81,8 +86,8 @@ def fetch_pack_list() -> None:
     datapack_metadata = dl_with_progress(DP_URL,
                                          f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading datapack metadata")
     vt_to_packdb(datapack_metadata, PACK_DB)
-    tweak_metadata = dl_with_progress(
-        CT_URL, f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading crafting tweak metadata")
+    tweak_metadata = dl_with_progress(CT_URL,
+                                      f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading crafting tweak metadata")
     vt_to_packdb(tweak_metadata, PACK_DB)
     log("Fetch complete", LogLevel.INFO)
 
@@ -91,8 +96,7 @@ def get_pack_metadata(pack_id: str) -> dict[str, Any]:
     """
     Gets the metadata of a given pack
     """
-    with PACK_DB.open() as file:
-        packs: dict = json.load(file)
+    packs = get_local_pack_list()
     if pack_id not in packs:
         log(f"The pack ID '{pack_id}' was not found in the sync database", LogLevel.ERROR)
         raise SystemExit(-1)
@@ -103,12 +107,17 @@ def get_local_pack_list(pack_filter: list[dict[str, str]] = None) -> dict[str, d
     """
     Gets the local pack list, filtered by the objects in `pack_filter`
     """
+    global pack_data
     if not PACK_DB.exists():
         log("Can't find a locally stored packdb.json. Attempting to fetch now...", LogLevel.WARN)
         fetch_pack_list()
 
-    with PACK_DB.open() as file:
-        packs: dict = json.load(file)
+    if pack_data is not None:
+        with PACK_DB.open() as file:
+            packs = json.load(file)
+        pack_data = packs
+    else:
+        packs = pack_data
 
     if pack_filter is not None:
         results = {}
