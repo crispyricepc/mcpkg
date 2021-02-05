@@ -1,11 +1,10 @@
 import json
 import re
-import tempfile
+import requests
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 from io import BytesIO
 from colorama import Fore
-from tqdm import tqdm
 
 from . import config
 from . import fileio

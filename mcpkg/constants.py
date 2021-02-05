@@ -1,6 +1,6 @@
 """Constants and Enums for use in the project."""
 
-from enum import Enum, auto
+from enum import Enum
 
 from colorama import Fore
 
