@@ -23,6 +23,7 @@ def formalise_name(name: str):
     """
     Removes spaces from a name. Also adds a source identifier i.e. 'back to blocks' becomes 'vanillatweaks.backtoblocks'
     """
+    return name
 
 
 def dl_with_progress(url: str, display: str) -> BytesIO:
@@ -39,6 +40,7 @@ def dl_with_progress(url: str, display: str) -> BytesIO:
     for data in response.iter_content(block_size):
         progress_bar.update(len(data))
         buffer.write(data)
+    buffer.seek(0)
     progress_bar.close()
     log(f"'{url}' saved to memory, status code {response.status_code}", LogLevel.DEBUG)
     if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
@@ -57,7 +59,8 @@ def vt_to_packdb(src: BytesIO, dst: Path) -> None:
     for src_category in src_dict["categories"]:
         for src_pack in src_category["packs"]:
             tags = [src_category["category"]]
-            new_dict[src_pack["name"]] = {
+            new_dict[formalise_name(src_pack["name"])] = {
+                "remoteName": src_pack["name"],
                 "display": src_pack["display"],
                 "version": src_pack["version"],
                 "description": src_pack["description"],
@@ -68,7 +71,6 @@ def vt_to_packdb(src: BytesIO, dst: Path) -> None:
     if (dst.exists()):
         dst_dict = json.load(dst.open())
         new_dict = dst_dict | new_dict
-
     json.dump(new_dict, dst.open("w"), indent=2, sort_keys=True)
 
 
@@ -86,6 +88,7 @@ def fetch_pack_list() -> None:
 
 
 def get_local_pack_list(pack_filter: list[str] = None) -> dict[str, dict[str, Any]]:
+
     if not PACK_DB.exists():
         log("Can't find a locally stored packdb.json. Attempting to fetch now...", LogLevel.WARN)
         fetch_pack_list()
@@ -93,7 +96,7 @@ def get_local_pack_list(pack_filter: list[str] = None) -> dict[str, dict[str, An
     with PACK_DB.open() as file:
         packs: dict = json.load(file)
 
-    if filter is not None:
+    if pack_filter is not None:
         results = {}
         for expression in pack_filter:
             for key in packs.keys():
