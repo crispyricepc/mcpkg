@@ -1,13 +1,13 @@
 import json
 import re
-import requests
+from io import BytesIO
 from pathlib import Path
 from typing import Any
-from io import BytesIO
+
+import requests
 from colorama import Fore
 
-from . import config
-from . import fileio
+from . import config, fileio
 from .constants import LogLevel
 from .logger import log
 

@@ -1,10 +1,11 @@
-from .constants import LogLevel
-from .logger import log
+from io import BytesIO
 
 import requests
-from io import BytesIO
-from tqdm import tqdm
 from colorama import Fore
+from tqdm import tqdm
+
+from .constants import LogLevel
+from .logger import log
 
 
 def dl_with_progress(url: str, display: str) -> BytesIO:

@@ -2,8 +2,9 @@ import argparse
 import re
 from pathlib import Path
 from typing import Any
-from packaging import version
+
 from colorama import Fore
+from packaging import version
 
 from . import config, syncdb, worldmanager
 from .constants import LogLevel
