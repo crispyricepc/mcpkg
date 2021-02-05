@@ -1,15 +1,14 @@
 import json
 import re
 import tempfile
-from io import BytesIO
 from pathlib import Path
 from typing import Any, Optional
-
-import requests
+from io import BytesIO
 from colorama import Fore
 from tqdm import tqdm
 
 from . import config
+from . import fileio
 from .constants import LogLevel
 from .logger import log
 
@@ -28,26 +27,34 @@ def formalise_name(name: str):
     return f"VanillaTweaks.{name.title().replace(' ', '')}"
 
 
-def dl_with_progress(url: str, display: str) -> BytesIO:
-    # Streaming, so we can iterate over the response.
-    response = requests.get(url, stream=True)
-    total_size_in_bytes = int(response.headers.get('content-length', 0))
-    block_size = 1024  # 1 Kibibyte
-    progress_bar = tqdm(total=total_size_in_bytes, unit="iB",
-                        unit_scale=True, desc=display,
-                        bar_format="{l_bar}%s{bar}%s{r_bar}" %
-                        (Fore.BLUE, Fore.RESET),
-                        ascii=True)
-    buffer = BytesIO()
-    for data in response.iter_content(block_size):
-        progress_bar.update(len(data))
-        buffer.write(data)
-    buffer.seek(0)
-    progress_bar.close()
-    log(f"'{url}' saved to memory, status code {response.status_code}", LogLevel.DEBUG)
-    if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-        log("Printing the fancy progress bar caused an issue, it's probably okay to ignore this", LogLevel.WARN)
-    return buffer
+def download_packs(pack_ids: list[str]) -> list[Path]:
+    """
+    Downloads a group of packs.
+    Zips packs into individual .zip files and returns a list of their locations on disk.
+    Request structure:
+    ```
+      packs: {
+          "category_name": [
+              "remote_name_a",
+              "remote_name_b"
+          ]
+      },
+      version: 1.16
+    ```
+    """
+    paths = []
+    request_data = {"packs": {}}
+    for pack_id in pack_ids:
+        pack = get_pack_metadata(pack_id)
+        # Category name
+        if pack["tags"][0] not in request_data["packs"]:
+            request_data["packs"][pack["tags"][0]] = []
+
+        request_data["packs"][pack["tags"][0]].append(pack["remoteName"])
+
+    log(f"Request data: {request_data}", LogLevel.DEBUG)
+
+    return paths
 
 
 def vt_to_packdb(src: BytesIO, dst: Path) -> None:
@@ -83,11 +90,11 @@ def fetch_pack_list() -> None:
     """
     Fetches the pack list from Vanilla Tweaks servers and stores it in a compatible pack list
     """
-    datapack_metadata = dl_with_progress(DP_URL,
-                                         f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading datapack metadata")
+    datapack_metadata = fileio.dl_with_progress(DP_URL,
+                                                f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading datapack metadata")
     vt_to_packdb(datapack_metadata, PACK_DB)
-    tweak_metadata = dl_with_progress(CT_URL,
-                                      f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading crafting tweak metadata")
+    tweak_metadata = fileio.dl_with_progress(CT_URL,
+                                             f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading crafting tweak metadata")
     vt_to_packdb(tweak_metadata, PACK_DB)
     log("Fetch complete", LogLevel.INFO)
 
