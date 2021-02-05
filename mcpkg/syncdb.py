@@ -88,7 +88,9 @@ def fetch_pack_list() -> None:
 
 
 def get_local_pack_list(pack_filter: list[str] = None) -> dict[str, dict[str, Any]]:
-
+    """
+    Gets the local pack list, filtered by the objects in `pack_filter`
+    """
     if not PACK_DB.exists():
         log("Can't find a locally stored packdb.json. Attempting to fetch now...", LogLevel.WARN)
         fetch_pack_list()
