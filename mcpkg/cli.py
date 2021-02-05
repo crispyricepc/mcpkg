@@ -1,12 +1,13 @@
-from typing import Any
-from . import config
-from . import syncdb
-from .logger import log
-from .constants import LogLevel
-
 import argparse
-from colorama import Fore
 import re
+from pathlib import Path
+from typing import Any
+
+from colorama import Fore
+
+from . import config, syncdb, worldmanager
+from .constants import LogLevel
+from .logger import log
 
 
 def add_subs(parser: argparse.ArgumentParser):
@@ -24,12 +25,19 @@ def add_subs(parser: argparse.ArgumentParser):
     upgrade_parser.add_argument("pkgname", help="the name of the package")
 
     list_parser = subparsers.add_parser("list", help="lists packages")
-    list_parser.add_argument("-c", "--compact", help="compact output",
+    list_parser.add_argument("-c", "--compact",
+                             help="compact output",
+                             action="store_true")
+    list_parser.add_argument("-i", "--installed",
+                             help="filter to only installed",
                              action="store_true")
 
     search_parser = subparsers.add_parser("search",
                                           help="search for a package")
     search_parser.add_argument("expression", help="the package query")
+    search_parser.add_argument("-c", "--compact",
+                               help="compact output",
+                               action="store_true")
 
 
 def add_opts(parser: argparse.ArgumentParser):
@@ -56,19 +64,18 @@ def upgrade():
     pass
 
 
-def list(compact: bool):
-    packlist = syncdb.get_local_pack_list()
+def list(compact: bool, installed: bool):
     log("Listing packs:", LogLevel.INFO)
+    packlist = syncdb.get_local_pack_list()
     for packname in packlist.keys():
         print_pack(packlist[packname], packname, compact)
 
 
-def search(expression: str):
-    packlist = syncdb.get_local_pack_list()
+def search(expression: str, compact: bool):
     log("Searching:", LogLevel.INFO)
+    packlist = syncdb.get_local_pack_list([expression])
     for packname in packlist.keys():
-        if re.search(expression, packname):
-            print_pack(packlist[packname], packname, False)
+        print_pack(packlist[packname], packname, compact)
 
 
 def main():
@@ -89,6 +96,6 @@ def main():
     elif args.command == "upgrade":
         upgrade()
     elif args.command == "list":
-        list(args.compact)
+        list(args.compact, args.installed)
     elif args.command == "search":
-        search(args.expression)
+        search(args.expression, args.compact)
