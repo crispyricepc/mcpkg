@@ -1,7 +1,7 @@
 import sys
 
-from mcpkg import config
-from mcpkg.constants import LogLevel
+from .cli import config
+from .constants import LogLevel
 
 
 def log(message: str, level: LogLevel) -> None:
