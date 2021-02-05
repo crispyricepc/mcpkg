@@ -17,7 +17,7 @@ pip install mcpkg
 mcpkg uses poetry; a Python virtual environment. To make sure you're running in the virtual environment, run:
 
 ```sh
-poetry show -v
+poetry env info -p
 ```
 
-to get the virtual environment path. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> to open the command prompt and run `Python: Select Interpreter` from the options. Paste the virtual environment path into the text box. Now you should be running in this virtual environment.
+to get the virtual environment path. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> to open the command prompt and run `Python: Select Interpreter` from the options. Paste the virtual environment path into the text box with `/bin/python3` appended. Now you should be running in this virtual environment.
