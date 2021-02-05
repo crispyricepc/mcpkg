@@ -12,6 +12,7 @@ argparse = "^1.4.0"
 colorama = "^0.4.4"
 pathlib = "^1.0.1"
 tqdm = "^4.56.0"
+packaging = "^20.9"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.5"

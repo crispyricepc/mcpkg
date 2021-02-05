@@ -2,7 +2,7 @@ import argparse
 import re
 from pathlib import Path
 from typing import Any
-
+from packaging import version
 from colorama import Fore
 
 from . import config, syncdb, worldmanager
@@ -72,8 +72,17 @@ def list(compact: bool, installed: bool, path: Path = Path.cwd()):
     if installed:
         pack_filter = worldmanager.get_installed_packs(path)
     packlist = syncdb.get_local_pack_list(pack_filter=pack_filter)
+
+    out_of_date = []
     for packname in packlist.keys():
         print_pack(packlist[packname], packname, compact)
+        if version.parse(syncdb.get_pack_metadata(packname)["version"]) > version.parse(packlist[packname]["version"]):
+            out_of_date.append(packname)
+
+    if len(out_of_date) != 0:
+        for n in out_of_date:
+            log(f"{Fore.GREEN}{n}{Fore.RESET} can be updated to {syncdb.get_pack_metadata(n)['version']}",
+                LogLevel.WARN)
 
 
 def search(expression: str, compact: bool):
