@@ -101,9 +101,6 @@ def main():
     elif args.command == "upgrade":
         upgrade()
     elif args.command == "list":
-        if args.path:
-            list(args.compact, args.installed, Path(args.path))
-        else:
-            list(args.compact, args.installed)
+        list(args.compact, args.installed, Path(args.path))
     elif args.command == "search":
         search(args.expression, args.compact)
