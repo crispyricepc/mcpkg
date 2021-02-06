@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Final
+from typing import Any, Final
 
 from .constants import LogLevel
 from .logger import log
@@ -40,7 +40,7 @@ def get_datapacks_dir(directory: Path) -> Path:
         raise SystemExit(-1)
 
 
-def get_installed_packs(directory: Path) -> list[dict[str, str]]:
+def get_installed_packs(directory: Path) -> list[dict[str, Any]]:
     """
     Returns a list of pack ids installed to the world in the given directory
     """
@@ -55,7 +55,8 @@ def get_installed_packs(directory: Path) -> list[dict[str, str]]:
         return json.load(file)
 
 
-def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str):
+def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str = "0.0.0",
+                 description: str = None, categories: list[str] = None):
     """
     Installs a pre-downloaded zipped pack to the destination world
     - `source_zip`: A path pointing to the pack to install
@@ -73,10 +74,19 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str):
     log(f"Creating new managed entry in '{packs_file}'",
         LogLevel.DEBUG)
     installed_packs = get_installed_packs(dest_dir)
-    installed_packs.append({
+
+    # Create the new pack
+    new_pack: dict[str, Any] = {
         "id": pack_id,
         "version": version,
         "location": str(installed_pack_path)
-    })
+    }
+    # Non-required items (there's probably a neater way to do this)
+    if description:
+        new_pack["description"] = description
+    if categories:
+        new_pack["categories"] = categories
+    installed_packs.append(new_pack)
+
     with packs_file.open("w") as file:
         json.dump(installed_packs, file)
