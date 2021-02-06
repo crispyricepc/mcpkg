@@ -40,16 +40,16 @@ def get_datapacks_dir(directory: Path) -> Path:
         raise SystemExit(-1)
 
 
-def get_installed_packs(directory: Path) -> list[dict[str, Any]]:
+def get_installed_packs(directory: Path) -> dict[str, Any]:
     """
-    Returns a list of pack ids installed to the world in the given directory
+    Returns a dictionary of packs installed to the world in the given directory
     """
     datapack_dir = get_datapacks_dir(directory)
     packs_file = datapack_dir / ".packs.json"
 
     if not packs_file.exists():
         log("This world has no datapacks or is not managed by the tool", LogLevel.WARN)
-        return []
+        return {}
 
     with packs_file.open() as file:
         return json.load(file)
@@ -77,16 +77,15 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str = 
 
     # Create the new pack
     new_pack: dict[str, Any] = {
-        "id": pack_id,
         "version": version,
-        "location": str(installed_pack_path)
+        "location": installed_pack_path
     }
     # Non-required items (there's probably a neater way to do this)
     if description:
         new_pack["description"] = description
     if categories:
         new_pack["categories"] = categories
-    installed_packs.append(new_pack)
+    installed_packs[pack_id] = new_pack
 
     with packs_file.open("w") as file:
         json.dump(installed_packs, file)

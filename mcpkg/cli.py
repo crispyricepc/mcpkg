@@ -54,10 +54,13 @@ def print_pack(pack: dict[str, Any], packname: str, compact: bool, colour: bool)
     if colour:
         blue = Fore.BLUE
         green = Fore.GREEN
+
+    description = pack["description"] if pack.get(
+        "description") else "No description available"
     print(
         f"{blue}{pack['display']}{Fore.RESET} ({green}{packname}{Fore.RESET}) v.{pack['version']}")
     if not compact:
-        print(f"\t{pack['description']}")
+        print(f"\t{description}")
 
 
 def install(packs: list[str]):
@@ -79,14 +82,13 @@ def list(compact: bool, installed: bool, path: Path = Path.cwd()):
 
     log("Listing packs:", LogLevel.INFO)
     pack_filter = None
-    if installed:
-        pack_filter = worldmanager.get_installed_packs(path)
-    packlist = syncdb.get_local_pack_list(pack_filter=pack_filter)
+    packlist = worldmanager.get_installed_packs(
+        path) if installed else syncdb.get_local_pack_list(pack_filter)
 
     out_of_date = []
     for packname in packlist.keys():
         print_pack(packlist[packname], packname, compact, config.IS_TTY)
-        if version.parse(syncdb.get_pack_metadata(packname)["version"]) > version.parse(packlist[packname]["version"]):
+        if syncdb.get_pack_metadata(packname) and version.parse(syncdb.get_pack_metadata(packname)["version"]) > version.parse(packlist[packname]["version"]):
             out_of_date.append(packname)
 
     if len(out_of_date) != 0:

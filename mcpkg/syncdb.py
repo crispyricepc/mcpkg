@@ -2,7 +2,7 @@ import json
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import requests
 from colorama import Fore
@@ -116,14 +116,14 @@ def fetch_pack_list() -> None:
     log("Fetch complete", LogLevel.INFO)
 
 
-def get_pack_metadata(pack_id: str) -> dict[str, Any]:
+def get_pack_metadata(pack_id: str) -> Optional[dict[str, Any]]:
     """
     Gets the metadata of a given pack
     """
     packs = get_local_pack_list()
     if pack_id not in packs:
-        log(f"The pack ID '{pack_id}' was not found in the sync database", LogLevel.ERROR)
-        raise SystemExit(-1)
+        log(f"The pack ID '{pack_id}' was not found in the sync database. Limited management is available", LogLevel.WARN)
+        return None
     return packs[pack_id]
 
 
