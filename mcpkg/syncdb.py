@@ -26,10 +26,10 @@ def formalise_name(name: str):
     return f"VanillaTweaks.{name.title().replace(' ', '')}"
 
 
-def download_packs(pack_ids: list[str]) -> list[Path]:
+def post_pack_dl_request(pack_ids: list[str]) -> str:
     """
-    Downloads a group of packs.
-    Zips packs into individual .zip files and returns a list of their locations on disk.
+    Makes a POST request to the Vanilla Tweaks server.
+    Returns a URL that should be used to download the packs
     Request structure:
     ```
       packs: {
@@ -41,7 +41,6 @@ def download_packs(pack_ids: list[str]) -> list[Path]:
       version: 1.16
     ```
     """
-    paths = []
     request_packs = {}
     for pack_id in pack_ids:
         pack = get_pack_metadata(pack_id)
@@ -71,7 +70,7 @@ def download_packs(pack_ids: list[str]) -> list[Path]:
             LogLevel.ERROR)
         raise SystemExit(-1)
 
-    return paths
+    return f"{VT_URL}response_message['link']"
 
 
 def vt_to_packdb(src: BytesIO, dst: Path) -> None:
