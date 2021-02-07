@@ -2,6 +2,8 @@
 
 Package manager for Minecraft datapacks and resourcepacks
 
+![demo](images/mcpkg-demo.gif)
+
 ## Installation
 
 ### Dependencies
