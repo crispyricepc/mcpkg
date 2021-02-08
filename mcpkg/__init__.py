@@ -1,4 +1,4 @@
-"""Command-line package manager for Minecraft datapacks. 
+"""Command-line package manager for Minecraft datapacks.
 
 Usage:
   mcpkg [-v] update
