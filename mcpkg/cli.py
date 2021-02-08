@@ -128,7 +128,7 @@ def search(expression: str, compact: bool):
     log("Searching:", LogLevel.INFO)
     packlist = syncdb.get_local_pack_list([expression])
     for packname in packlist.keys():
-        print_pack(packlist[packname], packname, compact, not config.IS_TTY)
+        print_pack(packlist[packname], packname, compact, config.IS_TTY)
 
 
 def main():
