@@ -1,11 +1,11 @@
 """Command-line package manager for Minecraft datapacks. 
 
 Usage:
-  mcpkg update
-  mcpkg install <packs>...
-  mcpkg upgrade <packs>...
-  mcpkg list [-ci] [--path=<path>]
-  mcpkg search [-c] [--path=<path>] <pattern>...
+  mcpkg [-v] update
+  mcpkg [-v] install <packs>...
+  mcpkg [-v] upgrade <packs>...
+  mcpkg [-v] list [-ci] [--path=<path>]
+  mcpkg [-v] search [-c] [--path=<path>] <pattern>...
 
   mcpkg -h | --help
   mcpkg --version | -V
@@ -119,17 +119,17 @@ def search(expressions: list[str], compact: bool):
 
 def main() -> None:
     """Entry point for the command-line script."""
-    config.verbose = arguments.get("--verbose", False)
+    config.verbose = arguments.get("-v", False)
     compact, installed = arguments["--compact"], arguments["--installed"]
 
     if arguments["install"]:
-        install(arguments["<name>"])
+        install(arguments["<packs>"])
 
     elif arguments["update"]:
         update()
 
     elif arguments["upgrade"]:
-        upgrade()
+        upgrade(arguments["<packs>"])
 
     elif arguments["list"]:
         if path := arguments["--path"]:
