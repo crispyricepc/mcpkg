@@ -1,9 +1,5 @@
-from . import cli
-
-
-def main():
-    cli.main()
+import mcpkg
 
 
 if __name__ == "__main__":
-    cli.main()
+    mcpkg.main()
