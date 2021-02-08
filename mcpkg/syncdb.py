@@ -11,9 +11,9 @@ from . import config, fileio
 from .constants import LogLevel
 from .logger import log
 
-VT_URL = "https://vanillatweaks.net/"
-DP_URL = f"{VT_URL}assets/resources/json/{config.MC_BASE_VERSION}/dpcategories.json"
-CT_URL = f"{VT_URL}assets/resources/json/{config.MC_BASE_VERSION}/ctcategories.json"
+VT_URL = "https://vanillatweaks.net"
+DP_URL = f"{VT_URL}/assets/resources/json/{config.MC_BASE_VERSION}/dpcategories.json"
+CT_URL = f"{VT_URL}/assets/resources/json/{config.MC_BASE_VERSION}/ctcategories.json"
 PACK_DB = config.CONFIG_DIR / "packdb.json"
 
 pack_data = {}
@@ -50,7 +50,7 @@ def post_pack_dl_request(pack_ids: list[str]) -> str:
 
         request_packs[category_name].append(pack["remoteName"])
 
-    url = f"{VT_URL}assets/server/zipcraftingtweaks.php"
+    url = f"{VT_URL}/assets/server/zipcraftingtweaks.php"
     request_data = {"packs": json.dumps(request_packs), "version": "1.16"}
     # Prep the request (allows for more verbose debug output)
     prep_request = requests.Request('POST',
@@ -70,7 +70,7 @@ def post_pack_dl_request(pack_ids: list[str]) -> str:
             LogLevel.ERROR)
         raise SystemExit(-1)
 
-    return f"{VT_URL}response_message['link']"
+    return f"{VT_URL}{response_message['link']}"
 
 
 def vt_to_packdb(src: BytesIO, dst: Path) -> None:
