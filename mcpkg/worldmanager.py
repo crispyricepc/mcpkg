@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import Any, Final
+from colorama import Fore
 import shutil
 
 from .constants import LogLevel
@@ -68,13 +69,16 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, display_name: s
     packs_file = datapack_dir / ".packs.json"
     installed_pack_path = (datapack_dir / f"{pack_id}.{version}.zip")
 
+    installed_packs = get_installed_packs(dest_dir)
+    if installed_packs.get(pack_id):
+        log(
+            f"The pack you are trying to install ({Fore.GREEN}{pack_id}{Fore.RESET}) already exists", LogLevel.WARN)
+        if not ((replace_pack := input("Replace? [y/N]: ").lower()) == "y" or replace_pack == "yes"):
+            raise SystemExit(-1)
+
     log(f"Installing '{source_zip}' to '{installed_pack_path}'",
         LogLevel.DEBUG)
     shutil.copy(source_zip, installed_pack_path)
-
-    log(f"Creating new managed entry in '{packs_file}'",
-        LogLevel.DEBUG)
-    installed_packs = get_installed_packs(dest_dir)
 
     # Create the new pack
     new_pack: dict[str, Any] = {
@@ -89,5 +93,9 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, display_name: s
         new_pack["categories"] = categories
     installed_packs[pack_id] = new_pack
 
+    log(f"Creating new managed entry in '{packs_file}'",
+        LogLevel.DEBUG)
     with packs_file.open("w") as file:
         json.dump(installed_packs, file)
+
+    log(f"Installed {Fore.GREEN}{pack_id}{Fore.RESET} v.{version}", LogLevel.INFO)
