@@ -1,6 +1,9 @@
-from io import BytesIO
-
+from typing import Iterable
 import requests
+from tempfile import mkdtemp
+from io import BytesIO
+from zipfile import ZipFile
+from pathlib import Path
 from colorama import Fore
 from tqdm import tqdm
 
@@ -28,3 +31,14 @@ def dl_with_progress(url: str, display: str) -> BytesIO:
     if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
         log("Printing the fancy progress bar caused an issue, it's probably okay to ignore this", LogLevel.WARN)
     return buffer
+
+
+def separate_datapacks(src_file: BytesIO) -> Iterable[Path]:
+    """
+    Separates a single zip file into their stored packs
+    """
+    log("Opening zip file", LogLevel.DEBUG)
+    with ZipFile(src_file, "r") as zip:
+        tmploc = Path(mkdtemp())
+        zip.extractall(tmploc)
+        return tmploc.glob("*.zip")

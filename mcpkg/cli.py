@@ -5,8 +5,8 @@ from typing import Any
 from colorama import Fore
 from packaging import version
 
-from . import config, syncdb, worldmanager
-from .constants import LogLevel
+from . import config, syncdb, worldmanager, fileio
+from .constants import LogLevel, Pattern
 from .logger import log
 
 
@@ -57,14 +57,41 @@ def print_pack(pack: dict[str, Any], packname: str, compact: bool, colour: bool)
 
     description = pack["description"] if pack.get(
         "description") else "No description available"
+    display_name = pack["display"] if pack.get(
+        "display") else "No display name available"
     print(
-        f"{blue}{pack['display']}{Fore.RESET} ({green}{packname}{Fore.RESET}) v.{pack['version']}")
+        f"{blue}{display_name}{Fore.RESET} ({green}{packname}{Fore.RESET}) v.{pack['version']}")
     if not compact:
         print(f"\t{description}")
 
 
 def install(packs: list[str]):
-    syncdb.download_packs(packs)
+    log("Getting pack metadata...", LogLevel.INFO)
+    dl_url = syncdb.post_pack_dl_request(packs)
+    log(f"Got '{dl_url}'", LogLevel.DEBUG)
+    bytes = fileio.dl_with_progress(dl_url, "Downloading packs")
+    pack_zips = fileio.separate_datapacks(bytes)
+    for pack_zip in pack_zips:
+        if not (match := Pattern.DATAPACK.match(pack_zip.stem)):
+            log("Regex match failed", LogLevel.ERROR)
+            raise SystemExit(-1)
+
+        pack_id = syncdb.formalise_name(match.group("name"))
+        pack_version = match.group("version")
+
+        pack_from_sync = syncdb.get_pack_metadata(pack_id)
+        if pack_from_sync:
+            worldmanager.install_pack(pack_zip,
+                                      Path.cwd(),
+                                      pack_id,
+                                      version=pack_version,
+                                      display_name=pack_from_sync["display"],
+                                      description=pack_from_sync["description"])
+        else:
+            worldmanager.install_pack(pack_zip,
+                                      Path.cwd(),
+                                      pack_id,
+                                      version=pack_version)
 
 
 def update():
@@ -99,7 +126,7 @@ def list(compact: bool, installed: bool, path: Path = Path.cwd()):
 
 def search(expression: str, compact: bool):
     log("Searching:", LogLevel.INFO)
-    packlist = syncdb.get_local_pack_list([{"id": expression}])
+    packlist = syncdb.get_local_pack_list([expression])
     for packname in packlist.keys():
         print_pack(packlist[packname], packname, compact, not config.IS_TTY)
 

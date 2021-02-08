@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import Any, Final
+import shutil
 
 from .constants import LogLevel
 from .logger import log
@@ -55,7 +56,7 @@ def get_installed_packs(directory: Path) -> dict[str, Any]:
         return json.load(file)
 
 
-def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str = "0.0.0",
+def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, display_name: str = None, version: str = "0.0.0",
                  description: str = None, categories: list[str] = None):
     """
     Installs a pre-downloaded zipped pack to the destination world
@@ -69,7 +70,7 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str = 
 
     log(f"Installing '{source_zip}' to '{installed_pack_path}'",
         LogLevel.DEBUG)
-    source_zip.rename(installed_pack_path)
+    shutil.copy(source_zip, installed_pack_path)
 
     log(f"Creating new managed entry in '{packs_file}'",
         LogLevel.DEBUG)
@@ -77,8 +78,9 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, version: str = 
 
     # Create the new pack
     new_pack: dict[str, Any] = {
+        "display": display_name,
         "version": version,
-        "location": installed_pack_path
+        "location": str(installed_pack_path)
     }
     # Non-required items (there's probably a neater way to do this)
     if description:

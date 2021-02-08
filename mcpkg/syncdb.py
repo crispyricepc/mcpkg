@@ -23,6 +23,9 @@ def formalise_name(name: str):
     """
     Removes spaces from a name. Also adds a source identifier i.e. 'back to blocks' becomes 'VanillaTweaks.BackToBlocks'
     """
+    if not name:
+        log("Can't formalise name because there isn't one", LogLevel.ERROR)
+        raise SystemExit(-1)
     return f"VanillaTweaks.{name.title().replace(' ', '')}"
 
 
@@ -50,7 +53,7 @@ def post_pack_dl_request(pack_ids: list[str]) -> str:
 
         request_packs[category_name].append(pack["remoteName"])
 
-    url = f"{VT_URL}/assets/server/zipcraftingtweaks.php"
+    url = f"{VT_URL}/assets/server/zipdatapacks.php"
     request_data = {"packs": json.dumps(request_packs), "version": "1.16"}
     # Prep the request (allows for more verbose debug output)
     prep_request = requests.Request('POST',
@@ -126,9 +129,10 @@ def get_pack_metadata(pack_id: str) -> Optional[dict[str, Any]]:
     return packs[pack_id]
 
 
-def get_local_pack_list(pack_filter: list[dict[str, str]] = None) -> dict[str, dict[str, Any]]:
+def get_local_pack_list(pack_filter: list[str] = None) -> dict[str, dict[str, Any]]:
     """
-    Gets the local pack list, filtered by the objects in `pack_filter`
+    Gets the local pack list, filtered by the strings in `pack_filter`
+    - `pack_filter` A list of pack IDs
     """
     global pack_data
     if not PACK_DB.exists():
@@ -145,12 +149,9 @@ def get_local_pack_list(pack_filter: list[dict[str, str]] = None) -> dict[str, d
     if pack_filter is not None:
         results = {}
         for search_term in pack_filter:
-            expression = search_term["id"]
             for key in packs.keys():
-                if re.search(expression, key, re.IGNORECASE):
+                if re.search(search_term, key, re.IGNORECASE):
                     results[key] = packs[key]
-                    if "version" in search_term:
-                        results[key]["version"] = search_term["version"]
     else:
         results = packs
 
