@@ -51,10 +51,15 @@ def print_pack(pack: dict[str, Any], packname: str, compact: bool, colour: bool)
         print(f"\t{description}")
 
 
-def install(packs: list[str]):
+def install(expressions: list[str]):
+    if not (packs := syncdb.get_local_pack_list(expressions)):
+        log("Packs could not be found", LogLevel.ERROR)
+        raise SystemExit(-1)
+
     log("Getting pack metadata...", LogLevel.INFO)
-    dl_url = syncdb.post_pack_dl_request(packs)
+    dl_url = syncdb.post_pack_dl_request(list(packs.keys()))
     log(f"Got '{dl_url}'", LogLevel.DEBUG)
+
     bytes = fileio.dl_with_progress(dl_url, "Downloading packs")
     pack_zips = fileio.separate_datapacks(bytes)
     for pack_zip in pack_zips:
