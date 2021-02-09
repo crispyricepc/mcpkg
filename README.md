@@ -1,8 +1,16 @@
 # mcpkg
 
-Package manager for Minecraft datapacks and resourcepacks
+Package manager for Minecraft datapacks, crafting tweaks, and resource packs
 
 ![demo](images/mcpkg-demo.gif)
+
+## Usage
+
+```sh
+mcpkg --help
+```
+
+Will give you a list of commands that can be run. Certain commands like `mcpkg list --installed` and `mcpkg install <name>` can only be run inside of a Minecraft world folder. By default your Minecraft worlds are located in `.minecraft/saves`.
 
 ## Installation
 
@@ -17,6 +25,28 @@ The easiset and most recommended way to install mcpkg is with `pip`
 ```sh
 pip install mcpkg
 ```
+
+## Road-map
+
+### Pre-release Version 0.1
+
+- [x] Install support for crafting tweaks
+- [ ] Install support for data packs
+- [x] Search using regular expressions
+- [x] Listing installed packs in a particular world folder
+- [x] Upgrading packages that are out of date
+- [x] Out-of-date notifications
+- [ ] Prompting the user to auto-update all out-of-date packages
+
+### Release Version 1.0
+
+- [ ] Completions
+  - [ ] Bash
+  - [ ] ZSH
+  - [ ] Fish
+  - [ ] Powershell
+- [ ] Install support for resource packs on server machines
+- [ ] Install support for resource packs on client machines
 
 ## FAQ
 
