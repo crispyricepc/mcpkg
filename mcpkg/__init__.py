@@ -26,6 +26,7 @@ from colorama import Fore
 from docopt import docopt
 from packaging import version
 from pkg_resources import get_distribution
+import os
 
 from mcpkg import config, syncdb, worldmanager, fileio
 from mcpkg.constants import LogLevel, Pattern
@@ -48,7 +49,9 @@ def print_pack(pack: dict[str, Any], packname: str, compact: bool, colour: bool)
 
     print(f"{blue}{display_name}{Fore.RESET} ({green}{packname}{Fore.RESET}) v.{version}")
     if not compact:
-        print(f"\t{description}")
+        page_width = os.get_terminal_size().columns - 6
+        for i in range(0, len(description), page_width):
+            print(f"{' ' * 6}{description[i:i + page_width]}")
 
 
 def install(expressions: list[str]):
