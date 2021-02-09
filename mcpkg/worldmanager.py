@@ -57,8 +57,7 @@ def get_installed_packs(directory: Path) -> dict[str, Any]:
         return json.load(file)
 
 
-def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, display_name: str = None, version: str = "0.0.0",
-                 description: str = None, categories: list[str] = None):
+def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, pack: dict[str, Any]):
     """
     Installs a pre-downloaded zipped pack to the destination world
     - `source_zip`: A path pointing to the pack to install
@@ -67,7 +66,8 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, display_name: s
     """
     datapack_dir = get_datapacks_dir(dest_dir)
     packs_file = datapack_dir / ".packs.json"
-    installed_pack_path = (datapack_dir / f"{pack_id}.{version}.zip")
+    installed_pack_path = (
+        datapack_dir / f"{pack_id}.{pack['version']}.zip")
 
     installed_packs = get_installed_packs(dest_dir)
     if installed_packs.get(pack_id):
@@ -80,22 +80,12 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, display_name: s
         LogLevel.DEBUG)
     shutil.copy(source_zip, installed_pack_path)
 
-    # Create the new pack
-    new_pack: dict[str, Any] = {
-        "display": display_name,
-        "version": version,
-        "location": str(installed_pack_path)
-    }
-    # Non-required items (there's probably a neater way to do this)
-    if description:
-        new_pack["description"] = description
-    if categories:
-        new_pack["categories"] = categories
-    installed_packs[pack_id] = new_pack
+    installed_packs[pack_id] = pack
 
     log(f"Creating new managed entry in '{packs_file}'",
         LogLevel.DEBUG)
     with packs_file.open("w") as file:
         json.dump(installed_packs, file)
 
-    log(f"Installed {Fore.GREEN}{pack_id}{Fore.RESET} v.{version}", LogLevel.INFO)
+    log(
+        f"Installed {Fore.GREEN}{pack_id}{Fore.RESET} v.{pack['version']}", LogLevel.INFO)

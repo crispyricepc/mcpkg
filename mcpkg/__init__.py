@@ -75,14 +75,15 @@ def install(expressions: list[str]):
             worldmanager.install_pack(pack_zip,
                                       Path.cwd(),
                                       pack_id,
-                                      version=pack_version,
-                                      display_name=pack_from_sync["display"],
-                                      description=pack_from_sync["description"])
+                                      pack_from_sync)
         else:
             worldmanager.install_pack(pack_zip,
                                       Path.cwd(),
                                       pack_id,
-                                      version=pack_version)
+                                      {
+                                          "display": match.group("name"),
+                                          "version": pack_version
+                                      })
 
 
 def update():

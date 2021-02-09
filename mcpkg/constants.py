@@ -13,5 +13,11 @@ class LogLevel(Enum):
     ERROR = f"[{Fore.RED}ERROR{Fore.RESET}]"
 
 
+class PackType(Enum):
+    RESOURCE = "resourcepack"
+    DATA = "datapack"
+    CRAFTING = "craftingtweak"
+
+
 class Pattern:
     DATAPACK = re.compile(r"^(?P<name>.*) v(?P<version>\d+\.\d+\.\d+).*$")

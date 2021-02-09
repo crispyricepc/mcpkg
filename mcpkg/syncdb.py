@@ -8,7 +8,7 @@ import requests
 from colorama import Fore
 
 from . import config, fileio
-from .constants import LogLevel
+from .constants import LogLevel, PackType
 from .logger import log
 
 VT_URL = "https://vanillatweaks.net"
@@ -76,7 +76,7 @@ def post_pack_dl_request(pack_ids: list[str]) -> str:
     return f"{VT_URL}{response_message['link']}"
 
 
-def vt_to_packdb(src: BytesIO, dst: Path) -> None:
+def vt_to_packdb(src: BytesIO, dst: Path, pack_type: PackType) -> None:
     """
     Converts a vanilla tweaks JSON metadata file into a compatible list of packs.
     - src: The path to the vanilla tweaks metadata
@@ -93,7 +93,8 @@ def vt_to_packdb(src: BytesIO, dst: Path) -> None:
                 "display": src_pack["display"],
                 "version": src_pack["version"],
                 "description": src_pack["description"],
-                "tags": tags
+                "tags": tags,
+                "type": pack_type
             }
 
     # Load any already stored values and union them
@@ -111,10 +112,10 @@ def fetch_pack_list() -> None:
     """
     datapack_metadata = fileio.dl_with_progress(DP_URL,
                                                 f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading datapack metadata")
-    vt_to_packdb(datapack_metadata, PACK_DB)
+    vt_to_packdb(datapack_metadata, PACK_DB, PackType.DATA)
     tweak_metadata = fileio.dl_with_progress(CT_URL,
                                              f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading crafting tweak metadata")
-    vt_to_packdb(tweak_metadata, PACK_DB)
+    vt_to_packdb(tweak_metadata, PACK_DB, PackType.CRAFTING)
     log("Fetch complete", LogLevel.INFO)
 
 
