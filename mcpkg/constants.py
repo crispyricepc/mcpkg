@@ -13,7 +13,7 @@ class LogLevel(Enum):
     ERROR = f"[{Fore.RED}ERROR{Fore.RESET}]"
 
 
-class PackType(Enum):
+class PackType(str, Enum):
     RESOURCE = "resourcepack"
     DATA = "datapack"
     CRAFTING = "craftingtweak"
