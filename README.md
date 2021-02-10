@@ -30,8 +30,8 @@ pip install mcpkg
 
 ### Pre-release Version 0.1
 
-- [x] Install support for crafting tweaks
-- [ ] Install support for data packs
+- [ ] Install support for crafting tweaks
+- [x] Install support for data packs
 - [x] Search using regular expressions
 - [x] Listing installed packs in a particular world folder
 - [x] Upgrading packages that are out of date
