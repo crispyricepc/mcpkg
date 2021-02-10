@@ -29,7 +29,29 @@ def formalise_name(name: str):
     return f"VanillaTweaks.{name.title().replace(' ', '')}"
 
 
-def post_pack_dl_request(pack_ids: list[str]) -> str:
+def make_post(url: str, request: dict[str, str]) -> str:
+    # Prep the request (allows for more verbose debug output)
+    prep_request = requests.Request('POST',
+                                    url,
+                                    data=request).prepare()
+    log(f"Sending request: '{prep_request.body}'' to '{url}'", LogLevel.DEBUG)
+    log(f"Request payload: {request}", LogLevel.DEBUG)
+
+    s = requests.Session()
+    res = s.send(prep_request)
+
+    response_message = json.loads(res.text)
+    if response_message["status"] == "error":
+        log(f"""Couldn't get packs!
+\tResponse from {url}: {response_message['message']}
+\tFor more details, it's recommended to turn on verbose mode with either the --verbose flag or setting mcpkg.config.verbose = True""",
+            LogLevel.ERROR)
+        raise SystemExit(-1)
+
+    return f"{VT_URL}{response_message['link']}"
+
+
+def post_pack_dl_request(pack_ids: list[str]) -> list[str]:
     """
     Makes a POST request to the Vanilla Tweaks server.
     Returns a URL that should be used to download the packs
@@ -44,36 +66,40 @@ def post_pack_dl_request(pack_ids: list[str]) -> str:
       version: 1.16
     ```
     """
-    request_packs = {}
+    request_datapacks = {}
+    request_craftingtweaks = {}
     for pack_id in pack_ids:
         pack = get_pack_metadata(pack_id)
+        if pack["type"] == "datapack":
+            dict_to_add_to = request_datapacks
+        else:
+            dict_to_add_to = request_craftingtweaks
         category_name = pack["tags"][0].lower()
-        if category_name not in request_packs:
-            request_packs[category_name] = []
+        if category_name not in dict_to_add_to:
+            dict_to_add_to[category_name] = []
 
-        request_packs[category_name].append(pack["remoteName"])
+        dict_to_add_to[category_name].append(pack["remoteName"])
 
-    url = f"{VT_URL}/assets/server/zipdatapacks.php"
-    request_data = {"packs": json.dumps(request_packs), "version": "1.16"}
-    # Prep the request (allows for more verbose debug output)
-    prep_request = requests.Request('POST',
-                                    url,
-                                    data=request_data).prepare()
-    log(f"Sending request: '{prep_request.body}'' to '{url}'", LogLevel.DEBUG)
-    log(f"Request payload: {request_data}", LogLevel.DEBUG)
+    response_links = []
 
-    s = requests.Session()
-    res = s.send(prep_request)
+    # Request data packs
+    if request_datapacks:
+        url = f"{VT_URL}/assets/server/zipdatapacks.php"
+        request_data = {
+            "packs": json.dumps(request_datapacks),
+            "version": "1.16"
+        }
+        response_links.append(make_post(url, request_data))
 
-    response_message = json.loads(res.text)
-    if response_message["status"] == "error":
-        log(f"""Couldn't get packs!
-\tResponse from {url}: {response_message['message']}
-\tFor more details, it's recommended to turn on verbose mode with either the --verbose flag or setting mcpkg.config.verbose = True""",
-            LogLevel.ERROR)
-        raise SystemExit(-1)
+    # Request crafting tweaks
+    if request_craftingtweaks:
+        url = f"{VT_URL}/assets/server/zipcraftingtweaks.php"
+        request_data = {
+            "packs": json.dumps(request_craftingtweaks),
+            "version": "1.16"
+        }
 
-    return f"{VT_URL}{response_message['link']}"
+    return response_links
 
 
 def vt_to_packdb(src: BytesIO, dst: Path, pack_type: PackType) -> None:

@@ -54,16 +54,8 @@ def print_pack(pack: dict[str, Any], packname: str, compact: bool, colour: bool)
             print(f"{' ' * 6}{description[i:i + page_width]}")
 
 
-def install(expressions: list[str]):
-    if not (packs := syncdb.get_local_pack_list(expressions)):
-        log("Packs could not be found", LogLevel.ERROR)
-        raise SystemExit(-1)
-
-    log("Getting pack metadata...", LogLevel.INFO)
-    dl_url = syncdb.post_pack_dl_request(list(packs.keys()))
-    log(f"Got '{dl_url}'", LogLevel.DEBUG)
-
-    bytes = fileio.dl_with_progress(dl_url, "Downloading packs")
+def install_packs_from_url(packs_url: str):
+    bytes = fileio.dl_with_progress(packs_url, "Downloading packs")
     pack_zips = fileio.separate_datapacks(bytes)
     for pack_zip in pack_zips:
         if not (match := Pattern.DATAPACK.match(pack_zip.stem)):
@@ -75,18 +67,34 @@ def install(expressions: list[str]):
 
         pack_from_sync = syncdb.get_pack_metadata(pack_id)
         if pack_from_sync:
-            worldmanager.install_pack(pack_zip,
-                                      Path.cwd(),
-                                      pack_id,
-                                      pack_from_sync)
+            worldmanager.install_pack(
+                pack_zip,
+                Path.cwd(),
+                pack_id,
+                pack_from_sync
+            )
         else:
-            worldmanager.install_pack(pack_zip,
-                                      Path.cwd(),
-                                      pack_id,
-                                      {
-                                          "display": match.group("name"),
-                                          "version": pack_version
-                                      })
+            worldmanager.install_pack(
+                pack_zip,
+                Path.cwd(),
+                pack_id,
+                {
+                    "display": match.group("name"),
+                    "version": pack_version
+                }
+            )
+
+
+def install(expressions: list[str]):
+    if not (packs := syncdb.get_local_pack_list(expressions)):
+        log("Packs could not be found", LogLevel.ERROR)
+        raise SystemExit(-1)
+
+    log("Getting pack metadata...", LogLevel.INFO)
+    dl_urls = syncdb.post_pack_dl_request(list(packs.keys()))
+    log(f"Got '{dl_urls}'", LogLevel.DEBUG)
+    for packs_url in dl_urls:
+        install_packs_from_url(packs_url)
 
 
 def update():
