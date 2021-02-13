@@ -74,7 +74,7 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, pack: dict[str,
         log(
             f"The pack you are trying to install ({Fore.GREEN}{pack_id}{Fore.RESET}) already exists", LogLevel.WARN)
         if not ((replace_pack := input("Replace? [y/N]: ").lower()) == "y" or replace_pack == "yes"):
-            raise SystemExit(-1)
+            return
 
     log(f"Installing '{source_zip}' to '{installed_pack_path}'",
         LogLevel.DEBUG)
