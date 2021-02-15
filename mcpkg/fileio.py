@@ -1,6 +1,6 @@
-from typing import Iterable
+from typing import Any, Iterable, Optional
 import requests
-from tempfile import mkdtemp
+from tempfile import mkdtemp, mkstemp
 from io import BytesIO
 from zipfile import ZipFile
 from pathlib import Path
@@ -42,3 +42,14 @@ def separate_datapacks(src_file: BytesIO) -> Iterable[Path]:
         tmploc = Path(mkdtemp())
         zip.extractall(tmploc)
         return tmploc.glob("*.zip")
+
+
+def separate_craftingtweak(src_file: BytesIO, pack_id: Optional[str] = None, pack_version: str = "0.0.0") -> Iterable[Path]:
+    """
+    Has the same signature as `separate_datapacks`, will most likely only move the file from memory to disk
+    """
+    log("Moving crafting tweak from memory to disk", LogLevel.DEBUG)
+    file_path = Path(mkdtemp()) / f"{pack_id} v{pack_version}.zip"
+    with open(file_path, "wb") as file:
+        file.write(src_file.read())
+    return [Path(file_path)]

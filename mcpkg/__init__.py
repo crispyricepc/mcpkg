@@ -20,7 +20,7 @@ Options:
 """
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from colorama import Fore
 from docopt import docopt
@@ -29,7 +29,7 @@ from pkg_resources import get_distribution
 import os
 
 from mcpkg import config, syncdb, worldmanager, fileio
-from mcpkg.constants import LogLevel, Pattern
+from mcpkg.constants import LogLevel, PackType, Pattern
 from mcpkg.logger import log
 
 
@@ -54,12 +54,20 @@ def print_pack(pack: dict[str, Any], packname: str, compact: bool, colour: bool)
             print(f"{' ' * 6}{description[i:i + page_width]}")
 
 
-def install_packs_from_url(packs_url: str):
+def install_packs_from_url(packs_url: str, pack_type: PackType, pack_id: Optional[str] = None):
     bytes = fileio.dl_with_progress(packs_url, "Downloading packs")
-    pack_zips = fileio.separate_datapacks(bytes)
+    if pack_type == PackType.DATA:
+        pack_zips = fileio.separate_datapacks(bytes)
+    elif pack_type == PackType.CRAFTING:
+        pack_zips = fileio.separate_craftingtweak(bytes, pack_id)
+    else:
+        log(f"The pack type '{pack_type}' is not currently supported",
+            LogLevel.ERROR)
+        raise SystemExit(-1)
+
     for pack_zip in pack_zips:
         if not (match := Pattern.DATAPACK.match(pack_zip.stem)):
-            log("Regex match failed", LogLevel.ERROR)
+            log(f"Regex match failed for {pack_zip.stem}", LogLevel.ERROR)
             raise SystemExit(-1)
 
         pack_id = syncdb.formalise_name(match.group("name"))
@@ -93,8 +101,17 @@ def install(expressions: list[str]):
     log("Getting pack metadata...", LogLevel.INFO)
     dl_urls = syncdb.post_pack_dl_request(list(packs.keys()))
     log(f"Got '{dl_urls}'", LogLevel.DEBUG)
-    for packs_url in dl_urls:
-        install_packs_from_url(packs_url)
+    for url_key in dl_urls.keys():
+        if url_key == PackType.CRAFTING:
+            for url in dl_urls[url_key]:
+                install_packs_from_url(
+                    url[list(url.keys())[0]], url_key, pack_id=list(url.keys())[0])
+        elif url_key == PackType.DATA:
+            install_packs_from_url(dl_urls[url_key], url_key)
+        else:
+            log(f"The pack type '{url_key}' is not yet implemented",
+                LogLevel.ERROR)
+            raise SystemExit(-1)
 
 
 def update():

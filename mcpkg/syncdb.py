@@ -26,7 +26,13 @@ def formalise_name(name: str):
     if not name:
         log("Can't formalise name because there isn't one", LogLevel.ERROR)
         raise SystemExit(-1)
+    if name_is_formalised(name):
+        return name
     return f"VanillaTweaks.{name.title().replace(' ', '')}"
+
+
+def name_is_formalised(name: str) -> bool:
+    return "VanillaTweaks." in name
 
 
 def make_post(url: str, request: dict[str, str]) -> str:
@@ -51,7 +57,7 @@ def make_post(url: str, request: dict[str, str]) -> str:
     return f"{VT_URL}{response_message['link']}"
 
 
-def post_pack_dl_request(pack_ids: list[str]) -> list[str]:
+def post_pack_dl_request(pack_ids: list[str]):
     """
     Makes a POST request to the Vanilla Tweaks server.
     Returns a URL that should be used to download the packs
@@ -67,20 +73,30 @@ def post_pack_dl_request(pack_ids: list[str]) -> list[str]:
     ```
     """
     request_datapacks = {}
-    request_craftingtweaks = {}
+    request_craftingtweaks = []
+    response_links = {}
+
     for pack_id in pack_ids:
         pack = get_pack_metadata(pack_id)
-        if pack["type"] == "datapack":
-            dict_to_add_to = request_datapacks
-        else:
-            dict_to_add_to = request_craftingtweaks
         category_name = pack["tags"][0].lower()
-        if category_name not in dict_to_add_to:
-            dict_to_add_to[category_name] = []
 
-        dict_to_add_to[category_name].append(pack["remoteName"])
-
-    response_links = []
+        if pack["type"] == "datapack":
+            if category_name not in request_datapacks:
+                request_datapacks[category_name] = []
+            request_datapacks[category_name].append(pack["remoteName"])
+        else:
+            # Make individual requests so the VT server doesn't bundle the packs
+            url = f"{VT_URL}/assets/server/zipcraftingtweaks.php"
+            ct_request = {category_name: [pack["remoteName"]]}
+            request_data = {
+                "packs": json.dumps(ct_request),
+                "version": "1.16"
+            }
+            if not response_links.get(PackType.CRAFTING):
+                response_links[PackType.CRAFTING] = []
+            response_links[PackType.CRAFTING].append({
+                pack_id: make_post(url, request_data)
+            })
 
     # Request data packs
     if request_datapacks:
@@ -89,15 +105,12 @@ def post_pack_dl_request(pack_ids: list[str]) -> list[str]:
             "packs": json.dumps(request_datapacks),
             "version": "1.16"
         }
-        response_links.append(make_post(url, request_data))
+        response_links[PackType.DATA] = make_post(url, request_data)
 
     # Request crafting tweaks
     if request_craftingtweaks:
-        url = f"{VT_URL}/assets/server/zipcraftingtweaks.php"
-        request_data = {
-            "packs": json.dumps(request_craftingtweaks),
-            "version": "1.16"
-        }
+        for ct_request in request_craftingtweaks:
+            ...
 
     return response_links
 
