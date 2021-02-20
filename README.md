@@ -32,7 +32,7 @@ pip install mcpkg
 
 - [x] Install support for crafting tweaks
 - [x] Install support for data packs
-- [ ] Removing packages
+- [x] Removing packages
 - [x] Search using regular expressions
 - [x] Listing installed packs in a particular world folder
 - [x] Upgrading packages that are out of date
