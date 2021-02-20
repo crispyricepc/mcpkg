@@ -142,7 +142,7 @@ def search(expressions: list[str], compact: bool):
 
 def main() -> None:
     """Entry point for the command-line script."""
-    config.verbose = arguments.get("-v", False)
+    config.verbose = arguments.get("--verbose", False)
     compact, installed = arguments["--compact"], arguments["--installed"]
 
     if arguments["install"]:
