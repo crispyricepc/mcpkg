@@ -1,14 +1,15 @@
-from typing import Any, Iterable, Optional
 import requests
-from tempfile import mkdtemp, mkstemp
+from tempfile import mkdtemp
 from io import BytesIO
 from zipfile import ZipFile
 from pathlib import Path
 from colorama import Fore
 from tqdm import tqdm
 
-from .constants import LogLevel
+from . import syncdb
+from .constants import LogLevel, Pattern
 from .logger import log
+from .pack import Pack
 
 
 def dl_with_progress(url: str, display: str) -> BytesIO:
@@ -33,23 +34,44 @@ def dl_with_progress(url: str, display: str) -> BytesIO:
     return buffer
 
 
-def separate_datapacks(src_file: BytesIO) -> Iterable[Path]:
+def separate_datapacks(src_file: BytesIO) -> dict[Pack, Path]:
     """
     Separates a single zip file into their stored packs
     """
     log("Opening zip file", LogLevel.DEBUG)
     with ZipFile(src_file, "r") as zip:
+        # Extract zip to temporary directory
         tmploc = Path(mkdtemp())
         zip.extractall(tmploc)
-        return tmploc.glob("*.zip")
+
+        # If datapacks, the child objects of the zip should be more zip files
+        output_zips = tmploc.glob("*.zip")
+        output_packs: dict[Pack, Path] = {}
+
+        for pack_zip in output_zips:
+            if not (match := Pattern.DATAPACK.match(pack_zip.stem)):
+                log(f"Regex match for '{pack_zip.stem}' failed",
+                    LogLevel.ERROR)
+                raise SystemExit(-1)
+            # Get pack metadata info from syncdb
+            if not (pack := syncdb.get_pack_metadata(match.group("name"))):
+                log(f"Couldn't find '{match.group('name')}' in syncdb",
+                    LogLevel.ERROR)
+                raise SystemExit(-1)
+
+            # Overwrite the database's version with ours
+            pack.version = match.group("version")
+            output_packs[pack] = pack_zip
+
+    return output_packs
 
 
-def separate_craftingtweak(src_file: BytesIO, pack_id: Optional[str] = None, pack_version: str = "0.0.0") -> Iterable[Path]:
+def separate_craftingtweak(src_file: BytesIO, pack: Pack) -> Path:
     """
     Has the same signature as `separate_datapacks`, will most likely only move the file from memory to disk
     """
     log("Moving crafting tweak from memory to disk", LogLevel.DEBUG)
-    file_path = Path(mkdtemp()) / f"{pack_id} v{pack_version}.zip"
+    file_path = Path(mkdtemp()) / f"{pack.id} v{pack.version}.zip"
     with open(file_path, "wb") as file:
         file.write(src_file.read())
-    return [Path(file_path)]
+    return Path(file_path)

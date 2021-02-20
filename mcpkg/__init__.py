@@ -20,7 +20,7 @@ Options:
 """
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from colorama import Fore
 from docopt import docopt
@@ -28,88 +28,76 @@ from packaging import version
 from pkg_resources import get_distribution
 import os
 
-from mcpkg import config, syncdb, worldmanager, fileio
-from mcpkg.constants import LogLevel, PackType, Pattern
-from mcpkg.logger import log
+from . import config, syncdb, worldmanager, fileio
+from .constants import LogLevel, PackType
+from .logger import log
+from .pack import Pack, PackSet
 
 
 __version__ = get_distribution("mcpkg").version
 arguments = docopt(__doc__, version=f"mcpkg {__version__}")
 
 
-def print_pack(pack: dict[str, Any], packname: str, compact: bool, colour: bool) -> None:
+def print_pack(pack: Pack, compact: bool, colour: bool) -> None:
     """Print the name and description for the provided pack."""
     blue = green = ""
     if colour:
         blue, green = Fore.BLUE, Fore.GREEN
 
-    version = pack.get("version")
-    display_name = pack.get("display", "No display name available")
-    description = pack.get("description", "No description available")
+    description = pack.description if pack.description else "No description available"
 
-    print(f"{blue}{display_name}{Fore.RESET} ({green}{packname}{Fore.RESET}) v.{version}")
+    print(f"{blue}{pack.display}{Fore.RESET} ({green}{pack.id}{Fore.RESET}) v.{pack.version}")
     if not compact:
         page_width = os.get_terminal_size().columns - 6
         for i in range(0, len(description), page_width):
             print(f"{' ' * 6}{description[i:i + page_width]}")
 
 
-def install_packs_from_url(packs_url: str, pack_type: PackType, pack_id: Optional[str] = None):
+def install_packs_from_url(packs_url: str, pack_type: PackType, pack: Optional[Pack] = None):
     bytes = fileio.dl_with_progress(packs_url, "Downloading packs")
     if pack_type == PackType.DATA:
         pack_zips = fileio.separate_datapacks(bytes)
     elif pack_type == PackType.CRAFTING:
-        pack_zips = fileio.separate_craftingtweak(bytes, pack_id)
+        if not pack:
+            log("Submit this issue, this code should never be reached", LogLevel.ERROR)
+            raise Exception()
+        pack_zips = {pack: fileio.separate_craftingtweak(bytes, pack)}
     else:
         log(f"The pack type '{pack_type}' is not currently supported",
             LogLevel.ERROR)
         raise SystemExit(-1)
 
-    for pack_zip in pack_zips:
-        if not (match := Pattern.DATAPACK.match(pack_zip.stem)):
-            log(f"Regex match failed for {pack_zip.stem}", LogLevel.ERROR)
-            raise SystemExit(-1)
-
-        pack_id = syncdb.formalise_name(match.group("name"))
-        pack_version = match.group("version")
-
-        pack_from_sync = syncdb.get_pack_metadata(pack_id)
-        if pack_from_sync:
-            worldmanager.install_pack(
-                pack_zip,
-                Path.cwd(),
-                pack_id,
-                pack_from_sync
-            )
-        else:
-            worldmanager.install_pack(
-                pack_zip,
-                Path.cwd(),
-                pack_id,
-                {
-                    "display": match.group("name"),
-                    "version": pack_version
-                }
-            )
+    for pack_zip_metadata in pack_zips.keys():
+        worldmanager.install_pack(
+            pack_zips[pack_zip_metadata],
+            Path.cwd(),
+            pack_zip_metadata
+        )
 
 
 def install(expressions: list[str]):
-    if not (packs := syncdb.get_local_pack_list(expressions)):
-        log("Packs could not be found", LogLevel.ERROR)
-        raise SystemExit(-1)
-
     log("Getting pack metadata...", LogLevel.INFO)
-    dl_urls = syncdb.post_pack_dl_request(list(packs.keys()))
+    packs = syncdb.get_local_pack_list(expressions)
+
+    dl_urls = syncdb.post_pack_dl_request(packs)
     log(f"Got '{dl_urls}'", LogLevel.DEBUG)
-    for url_key in dl_urls.keys():
-        if url_key == PackType.CRAFTING:
-            for url in dl_urls[url_key]:
+
+    for url_packtype in dl_urls.keys():
+        # Crafting Tweaks
+        if url_packtype == PackType.CRAFTING:
+            for url in dl_urls[url_packtype]:
+                pack_id = list(url.keys())[0]
+                pack = syncdb.get_pack_metadata(pack_id)
                 install_packs_from_url(
-                    url[list(url.keys())[0]], url_key, pack_id=list(url.keys())[0])
-        elif url_key == PackType.DATA:
-            install_packs_from_url(dl_urls[url_key], url_key)
+                    url[pack_id], url_packtype, pack)
+
+        # Datapacks
+        elif url_packtype == PackType.DATA:
+            install_packs_from_url(dl_urls[url_packtype], url_packtype)
+
+        # Resource packs (not yet implemented)
         else:
-            log(f"The pack type '{url_key}' is not yet implemented",
+            log(f"The pack type '{url_packtype}' is not yet implemented",
                 LogLevel.ERROR)
             raise SystemExit(-1)
 
@@ -129,26 +117,27 @@ def list_packages(compact: bool, installed: bool, path: Path = Path.cwd()):
 
     log("Listing packs:", LogLevel.INFO)
     pack_filter = None
-    packlist = worldmanager.get_installed_packs(
+    pack_set = worldmanager.get_installed_packs(
         path) if installed else syncdb.get_local_pack_list(pack_filter)
 
-    out_of_date = []
-    for packname in packlist.keys():
-        print_pack(packlist[packname], packname, compact, config.IS_TTY)
-        if syncdb.get_pack_metadata(packname) and version.parse(syncdb.get_pack_metadata(packname)["version"]) > version.parse(packlist[packname]["version"]):
-            out_of_date.append(packname)
+    out_of_date = PackSet()
+    for pack in pack_set:
+        print_pack(pack, compact, config.IS_TTY)
+        # Compare the locally installed pack's version to the syncdb
+        if version.parse(syncdb.get_pack_metadata(pack.id).version) > version.parse(pack.version):
+            out_of_date[pack.id] = pack
 
     if len(out_of_date) != 0:
-        for n in out_of_date:
-            log(f"{Fore.GREEN}{n}{Fore.RESET} can be updated to {syncdb.get_pack_metadata(n)['version']}",
+        for p in out_of_date:
+            log(f"{Fore.GREEN}{p.id}{Fore.RESET} can be updated to {syncdb.get_pack_metadata(p.id).version}",
                 LogLevel.WARN)
 
 
 def search(expressions: list[str], compact: bool):
     log("Searching:", LogLevel.INFO)
-    packlist = syncdb.get_local_pack_list(expressions)
-    for packname in packlist.keys():
-        print_pack(packlist[packname], packname, compact, config.IS_TTY)
+    pack_set = syncdb.search_local_pack_list(expressions)
+    for pack in pack_set:
+        print_pack(pack, compact, config.IS_TTY)
 
 
 def main() -> None:
