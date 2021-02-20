@@ -53,7 +53,7 @@ def print_pack(pack: Pack, compact: bool, colour: bool) -> None:
             print(f"{' ' * 6}{description[i:i + page_width]}")
 
 
-def install_packs_from_url(packs_url: str, pack_type: PackType, pack: Optional[Pack] = None):
+def install_packs_from_url(packs_url: str, pack_type: PackType, directory: Path, pack: Optional[Pack] = None):
     bytes = fileio.dl_with_progress(packs_url, "Downloading packs")
     if pack_type == PackType.DATA:
         pack_zips = fileio.separate_datapacks(bytes)
@@ -70,12 +70,12 @@ def install_packs_from_url(packs_url: str, pack_type: PackType, pack: Optional[P
     for pack_zip_metadata in pack_zips.keys():
         worldmanager.install_pack(
             pack_zips[pack_zip_metadata],
-            Path.cwd(),
+            directory,
             pack_zip_metadata
         )
 
 
-def install(expressions: list[str]):
+def install(expressions: list[str], directory=Path.cwd()):
     log("Getting pack metadata...", LogLevel.INFO)
     packs = syncdb.get_local_pack_list(expressions)
 
@@ -89,11 +89,12 @@ def install(expressions: list[str]):
                 pack_id = list(url.keys())[0]
                 pack = syncdb.get_pack_metadata(pack_id)
                 install_packs_from_url(
-                    url[pack_id], url_packtype, pack)
+                    url[pack_id], url_packtype, directory, pack)
 
         # Datapacks
         elif url_packtype == PackType.DATA:
-            install_packs_from_url(dl_urls[url_packtype], url_packtype)
+            install_packs_from_url(
+                dl_urls[url_packtype], url_packtype, directory)
 
         # Resource packs (not yet implemented)
         else:
@@ -110,7 +111,7 @@ def upgrade(packs: list[str]):
     pass
 
 
-def list_packages(compact: bool, installed: bool, path: Path = Path.cwd()):
+def list_packages(compact: bool, installed: bool, directory=Path.cwd()):
     if not (config.IS_TTY or compact):
         compact = True
         log("Pipe detected. Using compact layout", LogLevel.WARN)
@@ -118,7 +119,7 @@ def list_packages(compact: bool, installed: bool, path: Path = Path.cwd()):
     log("Listing packs:", LogLevel.INFO)
     pack_filter = None
     pack_set = worldmanager.get_installed_packs(
-        path) if installed else syncdb.get_local_pack_list(pack_filter)
+        directory) if installed else syncdb.get_local_pack_list(pack_filter)
 
     out_of_date = PackSet()
     for pack in pack_set:
