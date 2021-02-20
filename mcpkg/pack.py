@@ -57,6 +57,9 @@ class PackSet:
     def __init__(self):
         self._content: dict[str, Pack] = {}
 
+    def __len__(self):
+        return len(self._content)
+
     def __getitem__(self, key: str):
         return self._content[key]
 
