@@ -1,6 +1,7 @@
 import json
+from mcpkg.pack import Pack, PackSet, PackSetEncoder, decode_packset
 from pathlib import Path
-from typing import Any, Final
+from typing import Final
 from colorama import Fore
 import shutil
 
@@ -42,7 +43,7 @@ def get_datapacks_dir(directory: Path) -> Path:
         raise SystemExit(-1)
 
 
-def get_installed_packs(directory: Path) -> dict[str, Any]:
+def get_installed_packs(directory: Path) -> PackSet:
     """
     Returns a dictionary of packs installed to the world in the given directory
     """
@@ -51,13 +52,13 @@ def get_installed_packs(directory: Path) -> dict[str, Any]:
 
     if not packs_file.exists():
         log("This world has no datapacks or is not managed by the tool", LogLevel.WARN)
-        return {}
+        return PackSet()
 
     with packs_file.open() as file:
-        return json.load(file)
+        return decode_packset(file)
 
 
-def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, pack: dict[str, Any]):
+def install_pack(source_zip: Path, dest_dir: Path, pack: Pack):
     """
     Installs a pre-downloaded zipped pack to the destination world
     - `source_zip`: A path pointing to the pack to install
@@ -67,12 +68,12 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, pack: dict[str,
     datapack_dir = get_datapacks_dir(dest_dir)
     packs_file = datapack_dir / ".packs.json"
     installed_pack_path = (
-        datapack_dir / f"{pack_id}.{pack['version']}.zip")
+        datapack_dir / f"{pack.id}.{pack.version}.zip")
 
     installed_packs = get_installed_packs(dest_dir)
-    if installed_packs.get(pack_id):
+    if installed_packs.get(pack.id):
         log(
-            f"The pack you are trying to install ({Fore.GREEN}{pack_id}{Fore.RESET}) already exists", LogLevel.WARN)
+            f"The pack you are trying to install ({Fore.GREEN}{pack.id}{Fore.RESET}) already exists", LogLevel.WARN)
         if not ((replace_pack := input("Replace? [y/N]: ").lower()) == "y" or replace_pack == "yes"):
             return
 
@@ -80,12 +81,12 @@ def install_pack(source_zip: Path, dest_dir: Path, pack_id: str, pack: dict[str,
         LogLevel.DEBUG)
     shutil.copy(source_zip, installed_pack_path)
 
-    installed_packs[pack_id] = pack
+    installed_packs[pack.id] = pack
 
     log(f"Creating new managed entry in '{packs_file}'",
         LogLevel.DEBUG)
     with packs_file.open("w") as file:
-        json.dump(installed_packs, file)
+        json.dump(installed_packs, file, cls=PackSetEncoder)
 
     log(
-        f"Installed {Fore.GREEN}{pack_id}{Fore.RESET} v.{pack['version']}", LogLevel.INFO)
+        f"Installed {Fore.GREEN}{pack.id}{Fore.RESET} v.{pack.version}", LogLevel.INFO)

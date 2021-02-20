@@ -8,6 +8,7 @@ import requests
 from colorama import Fore
 
 from . import config, fileio
+from .pack import Pack, PackSet, PackSetEncoder, decode_packset
 from .constants import LogLevel, PackType
 from .logger import log
 
@@ -16,7 +17,7 @@ DP_URL = f"{VT_URL}/assets/resources/json/{config.MC_BASE_VERSION}/dpcategories.
 CT_URL = f"{VT_URL}/assets/resources/json/{config.MC_BASE_VERSION}/ctcategories.json"
 PACK_DB = config.CONFIG_DIR / "packdb.json"
 
-pack_data = {}
+pack_data: Optional[PackSet] = None
 
 
 def formalise_name(name: str):
@@ -57,7 +58,7 @@ def make_post(url: str, request: dict[str, str]) -> str:
     return f"{VT_URL}{response_message['link']}"
 
 
-def post_pack_dl_request(pack_ids: list[str]):
+def post_pack_dl_request(packs: PackSet):
     """
     Makes a POST request to the Vanilla Tweaks server.
     Returns a URL that should be used to download the packs
@@ -73,44 +74,46 @@ def post_pack_dl_request(pack_ids: list[str]):
     ```
     """
     request_datapacks = {}
-    request_craftingtweaks = []
     response_links = {}
 
-    for pack_id in pack_ids:
-        pack = get_pack_metadata(pack_id)
-        category_name = pack["tags"][0].lower()
+    for pack in packs:
+        # If the pack is a datapack
+        if pack.pack_type == PackType.DATA:
+            if pack.category not in request_datapacks:
+                request_datapacks[pack.category] = []
+            request_datapacks[pack.category].append(pack.remote_name)
 
-        if pack["type"] == "datapack":
-            if category_name not in request_datapacks:
-                request_datapacks[category_name] = []
-            request_datapacks[category_name].append(pack["remoteName"])
-        else:
+            # Make the POST request to get the datapacks download link
+            url = f"{VT_URL}/assets/server/zipdatapacks.php"
+            request_data = {
+                "packs": json.dumps(request_datapacks),
+                "version": "1.16"
+            }
+            response_links[PackType.DATA] = make_post(url, request_data)
+
+        # If the pack is a crafting tweaks
+        elif pack.pack_type == PackType.CRAFTING:
             # Make individual requests so the VT server doesn't bundle the packs
             url = f"{VT_URL}/assets/server/zipcraftingtweaks.php"
-            ct_request = {category_name: [pack["remoteName"]]}
+            ct_request = {pack.category: [pack.remote_name]}
             request_data = {
                 "packs": json.dumps(ct_request),
                 "version": "1.16"
             }
+
             if not response_links.get(PackType.CRAFTING):
                 response_links[PackType.CRAFTING] = []
+
+            # Make the POST request to get the crafting tweak download link
             response_links[PackType.CRAFTING].append({
-                pack_id: make_post(url, request_data)
+                pack.id: make_post(url, request_data)
             })
 
-    # Request data packs
-    if request_datapacks:
-        url = f"{VT_URL}/assets/server/zipdatapacks.php"
-        request_data = {
-            "packs": json.dumps(request_datapacks),
-            "version": "1.16"
-        }
-        response_links[PackType.DATA] = make_post(url, request_data)
-
-    # Request crafting tweaks
-    if request_craftingtweaks:
-        for ct_request in request_craftingtweaks:
-            ...
+        # Handle other cases
+        else:
+            log(f"The packtype '{pack.pack_type}' is not yet supported",
+                LogLevel.ERROR)
+            raise SystemExit(-1)
 
     return response_links
 
@@ -122,54 +125,68 @@ def vt_to_packdb(src: BytesIO, dst: Path, pack_type: PackType) -> None:
     - dst: The path to the new pack list (usually ~/.config/mcpkg/packs.json)
     """
     global pack_data
-    src_dict = json.load(src)
-    new_dict = {}
+    src_dict: dict[str, Any] = json.load(src)
+    pack_set = PackSet()
     for src_category in src_dict["categories"]:
+        category_name = src_category["category"]
         for src_pack in src_category["packs"]:
             tags = [src_category["category"]]
-            new_dict[formalise_name(src_pack["name"])] = {
-                "remoteName": src_pack["name"],
-                "display": src_pack["display"],
-                "version": src_pack["version"],
-                "description": src_pack["description"],
-                "tags": tags,
-                "type": pack_type
-            }
+            pack_to_add = Pack(
+                src_pack["name"],
+                src_pack["display"],
+                pack_type,
+                category_name,
+                src_pack["version"],
+                src_pack["description"],
+                tags
+            )
+            pack_set[pack_to_add.id] = pack_to_add
 
     # Load any already stored values and union them
     if (dst.exists()):
-        dst_dict = json.load(dst.open())
-        new_dict = dst_dict | new_dict
+        with open(dst) as fp:
+            existing_packset = decode_packset(fp)
+        pack_set.union(existing_packset)
 
-    pack_data = new_dict
-    json.dump(new_dict, dst.open("w"), indent=2, sort_keys=True)
+    pack_data = pack_set
+    json.dump(pack_set, dst.open("w"), indent=2,
+              sort_keys=True, cls=PackSetEncoder)
 
 
 def fetch_pack_list() -> None:
     """
     Fetches the pack list from Vanilla Tweaks servers and stores it in a compatible pack list
     """
+    # Get Datapacks
     datapack_metadata = fileio.dl_with_progress(DP_URL,
                                                 f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading datapack metadata")
     vt_to_packdb(datapack_metadata, PACK_DB, PackType.DATA)
+
+    # Get Crafting tweaks
     tweak_metadata = fileio.dl_with_progress(CT_URL,
                                              f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading crafting tweak metadata")
     vt_to_packdb(tweak_metadata, PACK_DB, PackType.CRAFTING)
     log("Fetch complete", LogLevel.INFO)
 
 
-def get_pack_metadata(pack_id: str) -> Optional[dict[str, Any]]:
+def get_pack_metadata(pack_id: str) -> Optional[Pack]:
     """
-    Gets the metadata of a given pack
+    Gets the metadata of a given pack.
+
+    `pack_id` can be either the formal id or the remote name
     """
-    packs = get_local_pack_list()
-    if pack_id not in packs:
-        log(f"The pack ID '{pack_id}' was not found in the sync database. Limited management is available", LogLevel.WARN)
-        return None
-    return packs[pack_id]
+    local_list = get_local_pack_list()
+    if pack := local_list.get(pack_id):
+        return pack
+
+    for pack in local_list:
+        if pack.remote_name == pack_id:
+            return pack
+
+    return None
 
 
-def get_local_pack_list(pack_filter: list[str] = None) -> dict[str, dict[str, Any]]:
+def get_local_pack_list(pack_filter: list[str] = None) -> PackSet:
     """
     Gets the local pack list, filtered by the strings in `pack_filter`
     - `pack_filter` A list of pack IDs
@@ -179,20 +196,38 @@ def get_local_pack_list(pack_filter: list[str] = None) -> dict[str, dict[str, An
         log("Can't find a locally stored packdb.json. Attempting to fetch now...", LogLevel.WARN)
         fetch_pack_list()
 
-    if pack_data is not None:
+    # This is crude caching and is probs a bad idea lol
+    if pack_data is None:
         with PACK_DB.open() as file:
-            packs = json.load(file)
+            packs = decode_packset(file)
         pack_data = packs
     else:
         packs = pack_data
 
     if pack_filter is not None:
-        results = {}
+        results = PackSet()
         for search_term in pack_filter:
-            for key in packs.keys():
-                if re.search(search_term, key, re.IGNORECASE):
-                    results[key] = packs[key]
+            # First try to non-iteratively find
+            if pack := packs.get(search_term):
+                results[search_term] = pack
+                continue
+
+            # More expensive fallback
+            for pack in packs:
+                if pack.id.split(".")[1].lower() == search_term.lower():
+                    results[pack.id] = pack
+
     else:
         results = packs
 
+    return results
+
+
+def search_local_pack_list(expressions: list[str]) -> PackSet:
+    results = PackSet()
+    for search_term in expressions:
+        for pack in get_local_pack_list():
+            if (re.search(search_term, pack.id) or re.search(
+                    search_term, pack.remote_name) or re.search(search_term, pack.description)):
+                results[pack.id] = pack
     return results

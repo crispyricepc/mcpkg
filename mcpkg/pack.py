@@ -8,15 +8,15 @@ from json import JSONEncoder
 class Pack:
     def __init__(
         self,
-        id: str,
+        remote_name: str,
         display: str,
         pack_type: PackType,
+        category: str,
         version: str = "0.0.0",
         description: Optional[str] = None,
-        tags: Optional[list[str]] = None,
-        category: Optional[str] = None
+        tags: Optional[list[str]] = None
     ):
-        self.id = id
+        self.remote_name = remote_name
         self.display = display
         self.pack_type = pack_type
         self.version = version
@@ -25,18 +25,11 @@ class Pack:
         self.category = category
 
     @property
-    def formal_name(self):
+    def id(self):
         """
         Removes spaces from a name. Also adds a source identifier i.e. 'back to blocks' becomes 'VanillaTweaks.BackToBlocks'
         """
-        return f"VanillaTweaks.{self.id.title().replace(' ', '')}"
-
-    @property
-    def remote_name(self):
-        """
-        Gets the name of a pack that is used for lookups to the Vanilla Tweaks server
-        """
-        pass
+        return f"VanillaTweaks.{self.remote_name.title().replace(' ', '')}"
 
 
 class PackSet:
@@ -76,6 +69,12 @@ class PackSet:
     def __iter__(self):
         return iter(self._content.values())
 
+    def union(self, s):
+        """
+        Merges another packset into this one
+        """
+        self._content = self._content | s._content
+
 # JSON Encoders / Decoders
 
 
@@ -109,11 +108,11 @@ class PackSetDecoder(JSONDecoder):
 
     def object_hook(self, dct: dict[str, Any]):
         return Pack(
-            dct["id"],
+            dct["remote_name"],
             dct["display"],
             dct["pack_type"],
+            dct["category"],
             dct["version"],
             dct["description"],
-            dct["tags"],
-            category=dct["category"]
+            dct["tags"]
         )
