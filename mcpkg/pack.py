@@ -1,6 +1,7 @@
+import json
 from json.decoder import JSONDecoder
 from mcpkg.constants import PackType
-from typing import Optional
+from typing import Any, Optional
 from json import JSONEncoder
 
 
@@ -79,8 +80,22 @@ class PackSet:
 
 
 class PackSetEncoder(JSONEncoder):
-    def default(self, o: PackSet):
-        return list(o._content.values())
+    def default(self, o):
+        if type(o) is PackSet:
+            return list(o._content.values())
+        elif type(o) is Pack:
+            return o.__dict__
+        else:
+            raise TypeError(
+                f"The PackSetEncoder can only encode Packs and PackSets, not {type(o).__name__}")
+
+
+def decode_packset(fp):
+    lst: list[Pack] = json.load(fp, cls=PackSetDecoder)
+    pack_set = PackSet()
+    for pack in lst:
+        pack_set[pack.id] = pack
+    return pack_set
 
 
 class PackSetDecoder(JSONDecoder):
@@ -92,5 +107,13 @@ class PackSetDecoder(JSONDecoder):
             **kwargs
         )
 
-    def object_hook(self, dct):
-        print(dct)
+    def object_hook(self, dct: dict[str, Any]):
+        return Pack(
+            dct["id"],
+            dct["display"],
+            dct["pack_type"],
+            dct["version"],
+            dct["description"],
+            dct["tags"],
+            category=dct["category"]
+        )
