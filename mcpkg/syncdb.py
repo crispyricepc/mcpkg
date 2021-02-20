@@ -8,7 +8,7 @@ import requests
 from colorama import Fore
 
 from . import config, fileio
-from .pack import Pack, PackSet, PackSetEncoder, decode_packset
+from .pack import Pack, PackSet, encode_packset, decode_packset
 from .constants import LogLevel, PackType
 from .logger import log
 
@@ -149,8 +149,8 @@ def vt_to_packdb(src: BytesIO, dst: Path, pack_type: PackType) -> None:
         pack_set.union(existing_packset)
 
     pack_data = pack_set
-    json.dump(pack_set, dst.open("w"), indent=2,
-              sort_keys=True, cls=PackSetEncoder)
+    with dst.open("w") as fp:
+        encode_packset(pack_set, fp)
 
 
 def fetch_pack_list() -> None:

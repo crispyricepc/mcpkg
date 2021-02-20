@@ -1,10 +1,9 @@
-import json
-from mcpkg.pack import Pack, PackSet, PackSetEncoder, decode_packset
 from pathlib import Path
 from typing import Final
 from colorama import Fore
 import shutil
 
+from .pack import Pack, PackSet, decode_packset, encode_packset
 from .constants import LogLevel
 from .logger import log
 
@@ -81,12 +80,42 @@ def install_pack(source_zip: Path, dest_dir: Path, pack: Pack):
         LogLevel.DEBUG)
     shutil.copy(source_zip, installed_pack_path)
 
+    pack.installed = installed_pack_path
     installed_packs[pack.id] = pack
 
     log(f"Creating new managed entry in '{packs_file}'",
         LogLevel.DEBUG)
     with packs_file.open("w") as file:
-        json.dump(installed_packs, file, cls=PackSetEncoder)
+        encode_packset(installed_packs, file)
 
     log(
         f"Installed {Fore.GREEN}{pack.id}{Fore.RESET} v.{pack.version}", LogLevel.INFO)
+
+
+def remove_pack(pack: Pack, directory: Path):
+    """
+    Removes a pack from a world
+    - `pack`: The pack to remove
+    - `directory`: Any directory that can be identified by this module
+    """
+    installed_packs = get_installed_packs(directory)
+
+    # Handle possible errors
+    if not (installed_pack := installed_packs.get(pack.id)):
+        log(f"Pack '{pack.id}' is not installed to '{directory}'",
+            LogLevel.ERROR)
+        raise SystemExit(-1)
+    if not installed_pack.installed:
+        log(f"Pack '{pack.id}' was found, but couldn't get the installed location", LogLevel.ERROR)
+        raise SystemExit(-1)
+
+    log(f"Removing '{installed_pack.id}'", LogLevel.INFO)
+
+    log(f"Removing '{installed_pack.installed}'", LogLevel.DEBUG)
+    installed_pack.installed.unlink()
+
+    log(f"Removing managed entry for '{installed_pack.id}'", LogLevel.DEBUG)
+    del installed_packs[installed_pack.id]
+    # Write changes
+    with (get_datapacks_dir(directory) / ".packs.json").open("w") as fp:
+        encode_packset(installed_packs, fp)

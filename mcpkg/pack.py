@@ -1,8 +1,7 @@
 import json
-from json.decoder import JSONDecoder
+from pathlib import Path
 from mcpkg.constants import PackType
 from typing import Any, Optional
-from json import JSONEncoder
 
 
 class Pack:
@@ -14,15 +13,17 @@ class Pack:
         category: str,
         version: str = "0.0.0",
         description: Optional[str] = None,
-        tags: Optional[list[str]] = None
+        tags: Optional[list[str]] = None,
+        installed: Optional[Path] = None
     ):
         self.remote_name = remote_name
         self.display = display
         self.pack_type = pack_type
+        self.category = category
         self.version = version
         self.description = description
         self.tags = tags
-        self.category = category
+        self.installed = installed
 
     @property
     def id(self):
@@ -75,44 +76,36 @@ class PackSet:
         """
         self._content = self._content | s._content
 
+
 # JSON Encoders / Decoders
 
 
-class PackSetEncoder(JSONEncoder):
-    def default(self, o):
-        if type(o) is PackSet:
-            return list(o._content.values())
-        elif type(o) is Pack:
-            return o.__dict__
-        else:
-            raise TypeError(
-                f"The PackSetEncoder can only encode Packs and PackSets, not {type(o).__name__}")
+def encode_packset(pack_set: PackSet, fp):
+    pack_list = []
+    for pack in pack_set:
+        pack_dict = pack.__dict__
+        pack_dict["installed"] = str(pack_dict["installed"])
+        pack_list.append(pack_dict)
+    json.dump(pack_list, fp)
 
 
 def decode_packset(fp):
-    lst: list[Pack] = json.load(fp, cls=PackSetDecoder)
+    lst: list[dict[str, Any]] = json.load(fp)
     pack_set = PackSet()
-    for pack in lst:
+    for pack_dct in lst:
+        if installed_loc := pack_dct.get("installed"):
+            installed_path = Path(installed_loc)
+        else:
+            installed_path = None
+        pack = Pack(
+            pack_dct["remote_name"],
+            pack_dct["display"],
+            pack_dct["pack_type"],
+            pack_dct["category"],
+            pack_dct["version"],
+            pack_dct.get("description"),
+            pack_dct.get("tags"),
+            installed_path
+        )
         pack_set[pack.id] = pack
     return pack_set
-
-
-class PackSetDecoder(JSONDecoder):
-    def __init__(self, *args, **kwargs):
-        JSONDecoder.__init__(
-            self,
-            object_hook=self.object_hook,
-            *args,
-            **kwargs
-        )
-
-    def object_hook(self, dct: dict[str, Any]):
-        return Pack(
-            dct["remote_name"],
-            dct["display"],
-            dct["pack_type"],
-            dct["category"],
-            dct["version"],
-            dct["description"],
-            dct["tags"]
-        )

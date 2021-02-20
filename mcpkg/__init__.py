@@ -2,7 +2,8 @@
 
 Usage:
   mcpkg [-v] update
-  mcpkg [-v] install <packs>...
+  mcpkg [-v] install <packs>... [--path=<path>]
+  mcpkg [-v] remove <packs>... [--path=<path>]
   mcpkg [-v] upgrade <packs>...
   mcpkg [-v] list [-ci] [--path=<path>]
   mcpkg [-v] search [-c] [--path=<path>] <pattern>...
@@ -103,6 +104,14 @@ def install(expressions: list[str], directory=Path.cwd()):
             raise SystemExit(-1)
 
 
+def remove_packs(expressions: list[str], directory=Path.cwd()):
+    installed_packs = worldmanager.get_installed_packs(directory)
+    for search_term in expressions:
+        if pack := installed_packs.get(search_term):
+            worldmanager.remove_pack(pack, directory)
+            continue
+
+
 def update():
     syncdb.fetch_pack_list()
 
@@ -149,6 +158,9 @@ def main() -> None:
     if arguments["install"]:
         install(arguments["<packs>"])
 
+    elif arguments["remove"]:
+        remove_packs(arguments["<packs>"])
+
     elif arguments["update"]:
         update()
 
@@ -157,7 +169,7 @@ def main() -> None:
 
     elif arguments["list"]:
         if path := arguments["--path"]:
-            list_packages(compact, installed=True, path=path)
+            list_packages(compact, installed=True, directory=path)
         else:
             list_packages(compact, installed=installed)
 
