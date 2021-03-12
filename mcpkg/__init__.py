@@ -164,6 +164,7 @@ def list_packages(compact: bool, installed: bool, directory=Path.cwd()):
         for p in out_of_date:
             log(f"{Fore.GREEN}{p.id}{Fore.RESET} can be updated to {syncdb.get_pack_metadata(p.id).version}",
                 LogLevel.WARN)
+        log(f"Run 'mcpkg upgrade' to update packs in this world", LogLevel.INFO)
 
 
 def search(expressions: list[str], compact: bool):
