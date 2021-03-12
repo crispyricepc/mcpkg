@@ -58,7 +58,7 @@ def get_installed_packs(directory: Path) -> PackSet:
         return decode_packset(file)
 
 
-def install_pack(source_zip: Path, dest_dir: Path, pack: Pack):
+def install_pack(source_zip: Path, dest_dir: Path, pack: Pack, noconfirm=False):
     """
     Installs a pre-downloaded zipped pack to the destination world
     - `source_zip`: A path pointing to the pack to install
@@ -71,7 +71,7 @@ def install_pack(source_zip: Path, dest_dir: Path, pack: Pack):
         datapack_dir / f"{pack.id}.{pack.version}.zip")
 
     installed_packs = get_installed_packs(dest_dir)
-    if installed_packs.get(pack.id):
+    if installed_packs.get(pack.id) and not noconfirm:
         log(
             f"The pack you are trying to install ({Fore.GREEN}{pack.id}{Fore.RESET}) already exists", LogLevel.WARN)
         if not ((replace_pack := input("Replace? [y/N]: ").lower()) == "y" or replace_pack == "yes"):

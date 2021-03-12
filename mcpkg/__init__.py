@@ -4,7 +4,7 @@ Usage:
   mcpkg [-v] update
   mcpkg [-v] install <packs>... [--path=<path>]
   mcpkg [-v] remove <packs>... [--path=<path>]
-  mcpkg [-v] upgrade <packs>... [-f] [--path=<path>]
+  mcpkg [-v] upgrade [<packs>...] [-f] [--path=<path>]
   mcpkg [-v] list [-ci] [--path=<path>]
   mcpkg [-v] search [-c] [--path=<path>] <pattern>...
 
@@ -55,7 +55,7 @@ def print_pack(pack: Pack, compact: bool, colour: bool) -> None:
             print(f"{' ' * 6}{description[i:i + page_width]}")
 
 
-def install_packs_from_url(packs_url: str, pack_type: PackType, directory: Path, pack: Optional[Pack] = None):
+def install_packs_from_url(packs_url: str, pack_type: PackType, directory: Path, pack: Optional[Pack] = None, noconfirm=False):
     bytes = fileio.dl_with_progress(packs_url, "Downloading packs")
     if pack_type == PackType.DATA:
         pack_zips = fileio.separate_datapacks(bytes)
@@ -73,11 +73,12 @@ def install_packs_from_url(packs_url: str, pack_type: PackType, directory: Path,
         worldmanager.install_pack(
             pack_zips[pack_zip_metadata],
             directory,
-            pack_zip_metadata
+            pack_zip_metadata,
+            noconfirm
         )
 
 
-def install_packs(pack_set: PackSet, directory: Path):
+def install_packs(pack_set: PackSet, directory: Path, noconfirm=False):
     dl_urls = syncdb.post_pack_dl_request(pack_set)
     log(f"Got '{dl_urls}'", LogLevel.DEBUG)
 
@@ -88,12 +89,12 @@ def install_packs(pack_set: PackSet, directory: Path):
                 pack_id = list(url.keys())[0]
                 pack = syncdb.get_pack_metadata(pack_id)
                 install_packs_from_url(
-                    url[pack_id], url_packtype, directory, pack)
+                    url[pack_id], url_packtype, directory, pack, noconfirm)
 
         # Datapacks
         elif url_packtype == PackType.DATA:
             install_packs_from_url(
-                dl_urls[url_packtype], url_packtype, directory)
+                dl_urls[url_packtype], url_packtype, directory, noconfirm)
 
         # Resource packs (not yet implemented)
         else:
@@ -123,9 +124,11 @@ def update():
 
 def upgrade(packs: list[str], force: bool, directory=Path.cwd()):
     installed_packs = worldmanager.get_installed_packs(directory)
-    installed_packs.filter_by(packs)
-    packs_to_upgrade = PackSet()
+    if packs:
+        installed_packs.filter_by(packs)
+
     # Remove packs that don't need upgrading
+    packs_to_upgrade = PackSet()
     for pack in installed_packs:
         if version.parse(syncdb.get_pack_metadata(pack.id).version) <= version.parse(pack.version) and not force:
             log(f"{Fore.GREEN}{pack.id}{Fore.RESET} is already at the latest version. Use --force to force the upgrade",
@@ -133,7 +136,7 @@ def upgrade(packs: list[str], force: bool, directory=Path.cwd()):
         else:
             packs_to_upgrade[pack.id] = pack
     # Install them the usual way
-    install_packs(packs_to_upgrade, directory)
+    install_packs(packs_to_upgrade, directory, True)
 
 
 def list_packages(compact: bool, installed: bool, directory=Path.cwd()):
