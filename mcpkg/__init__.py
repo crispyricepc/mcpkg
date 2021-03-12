@@ -4,7 +4,7 @@ Usage:
   mcpkg [-v] update
   mcpkg [-v] install <packs>... [--path=<path>]
   mcpkg [-v] remove <packs>... [--path=<path>]
-  mcpkg [-v] upgrade <packs>...
+  mcpkg [-v] upgrade <packs>... [-f] [--path=<path>]
   mcpkg [-v] list [-ci] [--path=<path>]
   mcpkg [-v] search [-c] [--path=<path>] <pattern>...
 
@@ -78,7 +78,8 @@ def install_packs_from_url(packs_url: str, pack_type: PackType, directory: Path,
 
 def install(expressions: list[str], directory=Path.cwd()):
     log("Getting pack metadata...", LogLevel.INFO)
-    packs = syncdb.get_local_pack_list(expressions)
+    packs = syncdb.get_local_pack_list()
+    packs.filter_by(expressions)
 
     dl_urls = syncdb.post_pack_dl_request(packs)
     log(f"Got '{dl_urls}'", LogLevel.DEBUG)
@@ -127,8 +128,12 @@ def list_packages(compact: bool, installed: bool, directory=Path.cwd()):
 
     log("Listing packs:", LogLevel.INFO)
     pack_filter = None
-    pack_set = worldmanager.get_installed_packs(
-        directory) if installed else syncdb.get_local_pack_list(pack_filter)
+    if installed:
+        pack_set = worldmanager.get_installed_packs(
+            directory)
+    else:
+        pack_set = syncdb.get_local_pack_list()
+        pack_set.filter_by(pack_filter)
 
     out_of_date = PackSet()
     for pack in pack_set:
@@ -165,11 +170,11 @@ def main() -> None:
         update()
 
     elif arguments["upgrade"]:
-        upgrade(arguments["<packs>"])
+        upgrade(arguments["<packs>"], arguments["--force"])
 
     elif arguments["list"]:
         if path := arguments["--path"]:
-            list_packages(compact, installed=True, directory=path)
+            list_packages(compact, installed=True, directory=Path(path))
         else:
             list_packages(compact, installed=installed)
 
