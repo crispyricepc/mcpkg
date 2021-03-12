@@ -197,7 +197,7 @@ def get_local_pack_list() -> PackSet:
         fetch_pack_list()
 
     # This is crude caching and is probs a bad idea lol
-    if pack_data is None:
+    if not pack_data:
         with PACK_DB.open() as file:
             packs = decode_packset(file)
         pack_data = packs

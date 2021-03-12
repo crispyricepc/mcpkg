@@ -77,7 +77,7 @@ class PackSet:
         self._content = self._content | s._content
 
     def filter_by(self, pack_filter: Optional[list[str]]):
-        if pack_filter is None:
+        if not pack_filter:
             return
 
         results = PackSet()
