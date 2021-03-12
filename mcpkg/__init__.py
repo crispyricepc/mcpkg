@@ -17,6 +17,7 @@ Options:
   -V --version    Show the current version.
   -i --installed  Only list installed packages.
   -c --compact    Display output in compact, non coloured mode.
+  -f --force      Force install a package
   --path=<path>   Specify the path to a world, or datapacks folder.
 """
 
@@ -76,12 +77,8 @@ def install_packs_from_url(packs_url: str, pack_type: PackType, directory: Path,
         )
 
 
-def install(expressions: list[str], directory=Path.cwd()):
-    log("Getting pack metadata...", LogLevel.INFO)
-    packs = syncdb.get_local_pack_list()
-    packs.filter_by(expressions)
-
-    dl_urls = syncdb.post_pack_dl_request(packs)
+def install_packs(pack_set: PackSet, directory: Path):
+    dl_urls = syncdb.post_pack_dl_request(pack_set)
     log(f"Got '{dl_urls}'", LogLevel.DEBUG)
 
     for url_packtype in dl_urls.keys():
@@ -105,6 +102,13 @@ def install(expressions: list[str], directory=Path.cwd()):
             raise SystemExit(-1)
 
 
+def install(expressions: list[str], directory=Path.cwd()):
+    log("Getting pack metadata...", LogLevel.INFO)
+    packs = syncdb.get_local_pack_list()
+    packs.filter_by(expressions)
+    install_packs(packs, directory)
+
+
 def remove_packs(expressions: list[str], directory=Path.cwd()):
     installed_packs = worldmanager.get_installed_packs(directory)
     for search_term in expressions:
@@ -117,8 +121,19 @@ def update():
     syncdb.fetch_pack_list()
 
 
-def upgrade(packs: list[str]):
-    pass
+def upgrade(packs: list[str], force: bool, directory=Path.cwd()):
+    installed_packs = worldmanager.get_installed_packs(directory)
+    installed_packs.filter_by(packs)
+    packs_to_upgrade = PackSet()
+    # Remove packs that don't need upgrading
+    for pack in installed_packs:
+        if version.parse(syncdb.get_pack_metadata(pack.id).version) <= version.parse(pack.version) and not force:
+            log(f"{Fore.GREEN}{pack.id}{Fore.RESET} is already at the latest version. Use --force to force the upgrade",
+                LogLevel.WARN)
+        else:
+            packs_to_upgrade[pack.id] = pack
+    # Install them the usual way
+    install_packs(packs_to_upgrade, directory)
 
 
 def list_packages(compact: bool, installed: bool, directory=Path.cwd()):
@@ -158,7 +173,7 @@ def search(expressions: list[str], compact: bool):
 def main() -> None:
     """Entry point for the command-line script."""
     config.verbose = arguments.get("--verbose", False)
-    compact, installed = arguments["--compact"], arguments["--installed"]
+    compact, installed, force = arguments["--compact"], arguments["--installed"], arguments["--force"]
 
     if arguments["install"]:
         if path := arguments["--path"]:
@@ -177,9 +192,9 @@ def main() -> None:
 
     elif arguments["upgrade"]:
         if path := arguments["--path"]:
-            upgrade(arguments["<packs>"], arguments["--force"], Path(path))
+            upgrade(arguments["<packs>"], force, Path(path))
         else:
-            upgrade(arguments["<packs>"], arguments["--force"])
+            upgrade(arguments["<packs>"], force)
 
     elif arguments["list"]:
         if path := arguments["--path"]:
