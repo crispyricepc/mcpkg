@@ -38,7 +38,8 @@ def get_datapacks_dir(directory: Path) -> Path:
         return directory
 
     else:
-        log("A datapacks folder could not be found in the given directory", LogLevel.ERROR)
+        log(
+            f"A datapacks directory could not be found in the given directory: '{directory}'", LogLevel.ERROR)
         raise SystemExit(-1)
 
 
