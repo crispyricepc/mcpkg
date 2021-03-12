@@ -186,7 +186,7 @@ def get_pack_metadata(pack_id: str) -> Optional[Pack]:
     return None
 
 
-def get_local_pack_list(pack_filter: list[str] = None) -> PackSet:
+def get_local_pack_list() -> PackSet:
     """
     Gets the local pack list, filtered by the strings in `pack_filter`
     - `pack_filter` A list of pack IDs
@@ -204,23 +204,7 @@ def get_local_pack_list(pack_filter: list[str] = None) -> PackSet:
     else:
         packs = pack_data
 
-    if pack_filter is not None:
-        results = PackSet()
-        for search_term in pack_filter:
-            # First try to non-iteratively find
-            if pack := packs.get(search_term):
-                results[search_term] = pack
-                continue
-
-            # More expensive fallback
-            for pack in packs:
-                if pack.id.split(".")[1].lower() == search_term.lower():
-                    results[pack.id] = pack
-
-    else:
-        results = packs
-
-    return results
+    return packs
 
 
 def search_local_pack_list(expressions: list[str]) -> PackSet:
