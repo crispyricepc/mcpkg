@@ -161,16 +161,25 @@ def main() -> None:
     compact, installed = arguments["--compact"], arguments["--installed"]
 
     if arguments["install"]:
-        install(arguments["<packs>"])
+        if path := arguments["--path"]:
+            install(arguments["<packs>"], Path(path))
+        else:
+            install(arguments["<packs>"])
 
     elif arguments["remove"]:
-        remove_packs(arguments["<packs>"])
+        if path := arguments["--path"]:
+            remove_packs(arguments["<packs>"], Path(path))
+        else:
+            remove_packs(arguments["<packs>"])
 
     elif arguments["update"]:
         update()
 
     elif arguments["upgrade"]:
-        upgrade(arguments["<packs>"], arguments["--force"])
+        if path := arguments["--path"]:
+            upgrade(arguments["<packs>"], arguments["--force"], Path(path))
+        else:
+            upgrade(arguments["<packs>"], arguments["--force"])
 
     elif arguments["list"]:
         if path := arguments["--path"]:
