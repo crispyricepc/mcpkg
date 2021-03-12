@@ -37,7 +37,7 @@ pip install mcpkg
 - [x] Listing installed packs in a particular world folder
 - [x] Upgrading packages that are out of date
 - [x] Out-of-date notifications
-- [ ] Prompting the user to auto-update all out-of-date packages
+- [x] Prompting the user to auto-update all out-of-date packages
 
 ### Release Version 1.0
 
