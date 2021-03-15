@@ -176,8 +176,8 @@ def search(expressions: list[str], compact: bool):
 
 def main() -> None:
     """Entry point for the command-line script."""
-    config.verbose = arguments.get("--verbose", False)
-    compact, installed, force = arguments["--compact"], arguments["--installed"], arguments["--force"]
+    config.verbose, compact, installed, force = arguments.get(
+        "--verbose", False), arguments.get("--compact", False), arguments.get("--installed", False), arguments.get("--force", False)
 
     if arguments["install"]:
         if path := arguments["--path"]:
