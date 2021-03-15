@@ -103,14 +103,14 @@ def install_packs(pack_set: PackSet, directory: Path, noconfirm=False):
             raise SystemExit(-1)
 
 
-def install(expressions: list[str], directory=Path.cwd()):
+def install(expressions: list[str], directory: Path):
     log("Getting pack metadata...", LogLevel.INFO)
     packs = syncdb.get_local_pack_list()
     packs.filter_by(expressions)
     install_packs(packs, directory)
 
 
-def remove_packs(expressions: list[str], directory=Path.cwd()):
+def remove_packs(expressions: list[str], directory: Path):
     installed_packs = worldmanager.get_installed_packs(directory)
     for search_term in expressions:
         if pack := installed_packs.get(search_term):
@@ -122,7 +122,7 @@ def update():
     syncdb.fetch_pack_list()
 
 
-def upgrade(packs: list[str], force: bool, directory=Path.cwd()):
+def upgrade(packs: list[str], force: bool, directory: Path):
     installed_packs = worldmanager.get_installed_packs(directory)
     if packs:
         installed_packs.filter_by(packs)
@@ -139,7 +139,7 @@ def upgrade(packs: list[str], force: bool, directory=Path.cwd()):
     install_packs(packs_to_upgrade, directory, True)
 
 
-def list_packages(compact: bool, installed: bool, directory=Path.cwd()):
+def list_packages(compact: bool, installed: bool, directory: Path):
     if not (config.IS_TTY or compact):
         compact = True
         log("Pipe detected. Using compact layout", LogLevel.WARN)
@@ -176,35 +176,31 @@ def search(expressions: list[str], compact: bool):
 
 def main() -> None:
     """Entry point for the command-line script."""
-    config.verbose, compact, installed, force = arguments.get(
-        "--verbose", False), arguments.get("--compact", False), arguments.get("--installed", False), arguments.get("--force", False)
+    config.verbose = arguments["--verbose"]
+    compact = arguments["--compact"]
+    installed = arguments["--installed"]
+    force = arguments["--force"]
+
+    if not (path := arguments["--path"]):
+        path = str(Path.cwd().absolute())
 
     if arguments["install"]:
-        if path := arguments["--path"]:
-            install(arguments["<packs>"], Path(path))
-        else:
-            install(arguments["<packs>"])
+        install(arguments["<packs>"], Path(path))
 
     elif arguments["remove"]:
-        if path := arguments["--path"]:
-            remove_packs(arguments["<packs>"], Path(path))
-        else:
-            remove_packs(arguments["<packs>"])
+        remove_packs(arguments["<packs>"], Path(path))
 
     elif arguments["update"]:
         update()
 
     elif arguments["upgrade"]:
-        if path := arguments["--path"]:
-            upgrade(arguments["<packs>"], force, Path(path))
-        else:
-            upgrade(arguments["<packs>"], force)
+        upgrade(arguments["<packs>"], force, Path(path))
 
     elif arguments["list"]:
-        if path := arguments["--path"]:
-            list_packages(compact, installed=True, directory=Path(path))
+        if arguments["--path"]:
+            list_packages(compact, True, Path(path))
         else:
-            list_packages(compact, installed=installed)
+            list_packages(compact, installed, Path(path))
 
     elif arguments["search"]:
         search(arguments["<pattern>"], compact)
