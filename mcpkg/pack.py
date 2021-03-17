@@ -13,7 +13,7 @@ class Pack:
         category: str,
         version: str = "0.0.0",
         description: Optional[str] = None,
-        tags: Optional[list[str]] = None,
+        tags: "Optional[list[str]]" = None,
         installed: Optional[Path] = None
     ):
         self.remote_name = remote_name
@@ -50,7 +50,7 @@ class PackSet:
     """
 
     def __init__(self):
-        self._content: dict[str, Pack] = {}
+        self._content: "dict[str, Pack]" = {}
 
     def __len__(self):
         return len(self._content)
@@ -74,16 +74,17 @@ class PackSet:
         """
         Merges another packset into this one
         """
-        self._content = self._content | s._content
+        self._content.update(s._content)
 
-    def filter_by(self, pack_filter: Optional[list[str]]):
+    def filter_by(self, pack_filter: "Optional[list[str]]"):
         if not pack_filter:
             return
 
         results = PackSet()
         for search_term in pack_filter:
             # First try to non-iteratively find
-            if pack := self.get(search_term):
+            pack = self.get(search_term)
+            if pack:
                 results[search_term] = pack
                 continue
 
@@ -108,10 +109,11 @@ def encode_packset(pack_set: PackSet, fp):
 
 
 def decode_packset(fp):
-    lst: list[dict[str, Any]] = json.load(fp)
+    lst: "list[dict[str, Any]]" = json.load(fp)
     pack_set = PackSet()
     for pack_dct in lst:
-        if installed_loc := pack_dct.get("installed"):
+        installed_loc = pack_dct.get("installed")
+        if installed_loc:
             installed_path = Path(installed_loc)
         else:
             installed_path = None

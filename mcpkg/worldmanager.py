@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Final
 from colorama import Fore
 import shutil
 
@@ -8,7 +7,7 @@ from .constants import LogLevel
 from .logger import log
 
 
-WORLD_FILES: Final[tuple[str, ...]] = (
+WORLD_FILES = (
     "advancements", "data", "datapacks", "level.dat", "playerdata", "region", "stats"
 )
 
@@ -74,7 +73,8 @@ def install_pack(source_zip: Path, dest_dir: Path, pack: Pack, noconfirm=False):
     if installed_packs.get(pack.id) and not noconfirm:
         log(
             f"The pack you are trying to install ({Fore.GREEN}{pack.id}{Fore.RESET}) already exists", LogLevel.WARN)
-        if not ((replace_pack := input("Replace? [y/N]: ").lower()) == "y" or replace_pack == "yes"):
+        replace_pack = input("Replace? [y/N]: ").lower()
+        if not (replace_pack == "y" or replace_pack == "yes"):
             return
 
     log(f"Installing '{source_zip}' to '{installed_pack_path}'",
@@ -102,7 +102,8 @@ def remove_pack(pack: Pack, directory: Path):
     installed_packs = get_installed_packs(directory)
 
     # Handle possible errors
-    if not (installed_pack := installed_packs.get(pack.id)):
+    installed_pack = installed_packs.get(pack.id)
+    if not installed_pack:
         log(f"Pack '{pack.id}' is not installed to '{directory}'",
             LogLevel.ERROR)
         raise SystemExit(-1)

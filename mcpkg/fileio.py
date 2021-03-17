@@ -34,7 +34,7 @@ def dl_with_progress(url: str, display: str) -> BytesIO:
     return buffer
 
 
-def separate_datapacks(src_file: BytesIO) -> dict[Pack, Path]:
+def separate_datapacks(src_file: BytesIO) -> "dict[Pack, Path]":
     """
     Separates a single zip file into their stored packs
     """
@@ -46,15 +46,17 @@ def separate_datapacks(src_file: BytesIO) -> dict[Pack, Path]:
 
         # If datapacks, the child objects of the zip should be more zip files
         output_zips = tmploc.glob("*.zip")
-        output_packs: dict[Pack, Path] = {}
+        output_packs: "dict[Pack, Path]" = {}
 
         for pack_zip in output_zips:
-            if not (match := Pattern.DATAPACK.match(pack_zip.stem)):
+            match = Pattern.DATAPACK.match(pack_zip.stem)
+            if not match:
                 log(f"Regex match for '{pack_zip.stem}' failed",
                     LogLevel.ERROR)
                 raise SystemExit(-1)
             # Get pack metadata info from syncdb
-            if not (pack := syncdb.get_pack_metadata(match.group("name"))):
+            pack = syncdb.get_pack_metadata(match.group("name"))
+            if not pack:
                 log(f"Couldn't find '{match.group('name')}' in syncdb",
                     LogLevel.ERROR)
                 raise SystemExit(-1)

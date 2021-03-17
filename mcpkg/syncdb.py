@@ -36,7 +36,7 @@ def name_is_formalised(name: str) -> bool:
     return "VanillaTweaks." in name
 
 
-def make_post(url: str, request: dict[str, str]) -> str:
+def make_post(url: str, request: "dict[str, str]") -> str:
     # Prep the request (allows for more verbose debug output)
     prep_request = requests.Request('POST',
                                     url,
@@ -125,7 +125,7 @@ def vt_to_packdb(src: BytesIO, dst: Path, pack_type: PackType) -> None:
     - dst: The path to the new pack list (usually ~/.config/mcpkg/packs.json)
     """
     global pack_data
-    src_dict: dict[str, Any] = json.load(src)
+    src_dict: "dict[str, Any]" = json.load(src)
     pack_set = PackSet()
     for src_category in src_dict["categories"]:
         category_name = src_category["category"]
@@ -176,7 +176,9 @@ def get_pack_metadata(pack_id: str) -> Optional[Pack]:
     `pack_id` can be either the formal id or the remote name
     """
     local_list = get_local_pack_list()
-    if pack := local_list.get(pack_id):
+
+    pack = local_list.get(pack_id)
+    if pack:
         return pack
 
     for pack in local_list:
@@ -207,7 +209,7 @@ def get_local_pack_list() -> PackSet:
     return packs
 
 
-def search_local_pack_list(expressions: list[str]) -> PackSet:
+def search_local_pack_list(expressions: "list[str]") -> PackSet:
     results = PackSet()
     for search_term in expressions:
         for pack in get_local_pack_list():

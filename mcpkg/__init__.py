@@ -103,17 +103,18 @@ def install_packs(pack_set: PackSet, directory: Path, noconfirm=False):
             raise SystemExit(-1)
 
 
-def install(expressions: list[str], directory: Path):
+def install(expressions: "list[str]", directory: Path):
     log("Getting pack metadata...", LogLevel.INFO)
     packs = syncdb.get_local_pack_list()
     packs.filter_by(expressions)
     install_packs(packs, directory)
 
 
-def remove_packs(expressions: list[str], directory: Path):
+def remove_packs(expressions: "list[str]", directory: Path):
     installed_packs = worldmanager.get_installed_packs(directory)
     for search_term in expressions:
-        if pack := installed_packs.get(search_term):
+        pack = installed_packs.get(search_term)
+        if pack:
             worldmanager.remove_pack(pack, directory)
             continue
 
@@ -122,7 +123,7 @@ def update():
     syncdb.fetch_pack_list()
 
 
-def upgrade(packs: list[str], force: bool, directory: Path):
+def upgrade(packs: "list[str]", force: bool, directory: Path):
     installed_packs = worldmanager.get_installed_packs(directory)
     if packs:
         installed_packs.filter_by(packs)
@@ -167,7 +168,7 @@ def list_packages(compact: bool, installed: bool, directory: Path):
         log("Run 'mcpkg upgrade' to update packs in this world", LogLevel.INFO)
 
 
-def search(expressions: list[str], compact: bool):
+def search(expressions: "list[str]", compact: bool):
     log("Searching:", LogLevel.INFO)
     pack_set = syncdb.search_local_pack_list(expressions)
     for pack in pack_set:
@@ -181,7 +182,8 @@ def main() -> None:
     installed = arguments["--installed"]
     force = arguments["--force"]
 
-    if not (path := arguments["--path"]):
+    path = arguments["--path"]
+    if not path:
         path = str(Path.cwd().absolute())
 
     if arguments["install"]:
