@@ -16,7 +16,7 @@ Will give you a list of commands that can be run. Certain commands like `mcpkg l
 
 ### Dependencies
 
-- **Python 3.9:** If you're on linux or macOS, you should install from your package manager. If you're on Windows, you can install python from [their site](https://www.python.org/)
+- **Python 3.7 or better:** If you're on linux or macOS, you should install from your package manager. If you're on Windows, you can install python from [their site](https://www.python.org/)
 
 ### Installing the cross-platform way
 
