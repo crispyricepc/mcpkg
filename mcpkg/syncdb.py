@@ -15,6 +15,7 @@ from .logger import log
 VT_URL = "https://vanillatweaks.net"
 DP_URL = f"{VT_URL}/assets/resources/json/{config.MC_BASE_VERSION}/dpcategories.json"
 CT_URL = f"{VT_URL}/assets/resources/json/{config.MC_BASE_VERSION}/ctcategories.json"
+RP_URL = f"{VT_URL}/assets/resources/json/{config.MC_BASE_VERSION}/rpcategories.json"
 PACK_DB = config.CONFIG_DIR / "packdb.json"
 
 pack_data: Optional[PackSet] = None
@@ -131,12 +132,15 @@ def vt_to_packdb(src: BytesIO, dst: Path, pack_type: PackType) -> None:
         category_name = src_category["category"]
         for src_pack in src_category["packs"]:
             tags = [src_category["category"]]
+            version = src_pack.get("version")
+            if not version:
+                version = "0.0.0"
             pack_to_add = Pack(
                 src_pack["name"],
                 src_pack["display"],
                 pack_type,
                 category_name,
-                src_pack["version"],
+                version,
                 src_pack["description"],
                 tags
             )
@@ -166,6 +170,12 @@ def fetch_pack_list() -> None:
     tweak_metadata = fileio.dl_with_progress(CT_URL,
                                              f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading crafting tweak metadata")
     vt_to_packdb(tweak_metadata, PACK_DB, PackType.CRAFTING)
+
+    # Get Resource Packs
+    resource_metadata = fileio.dl_with_progress(RP_URL,
+                                                f"[{Fore.GREEN}]INFO[{Fore.RESET}] Downloading resource pack metadata")
+    vt_to_packdb(resource_metadata, PACK_DB, PackType.RESOURCE)
+
     log("Fetch complete", LogLevel.INFO)
 
 
