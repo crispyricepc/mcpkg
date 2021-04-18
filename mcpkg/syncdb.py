@@ -214,6 +214,6 @@ def search_local_pack_list(expressions: "list[str]") -> PackSet:
     for search_term in expressions:
         for pack in get_local_pack_list():
             if (re.search(search_term, pack.id) or re.search(
-                    search_term, pack.remote_name) or re.search(search_term, pack.description)):
+                    search_term, pack.remote_name) or (pack.description and re.search(search_term, pack.description))):
                 results[pack.id] = pack
     return results
