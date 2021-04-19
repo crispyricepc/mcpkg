@@ -46,8 +46,9 @@ def print_pack(pack: Pack, compact: bool, colour: bool) -> None:
         blue, green = Fore.BLUE, Fore.GREEN
 
     description = pack.description if pack.description else "No description available"
+    version = f" v.{pack.version}" if pack.version != "0.0.0" else ""
 
-    print(f"{blue}{pack.display}{Fore.RESET} ({green}{pack.id}{Fore.RESET}) v.{pack.version}")
+    print(f"{blue}{pack.display}{Fore.RESET} ({green}{pack.id}{Fore.RESET}){version}")
     if not compact:
         page_width = os.get_terminal_size().columns - 6
         for i in range(0, len(description), page_width):
@@ -110,7 +111,7 @@ def upgrade(packs: "list[str]", force: bool, directory: Path):
     packs_to_upgrade = PackSet()
     for pack in installed_packs:
         if version.parse(syncdb.get_pack_metadata(pack.id).version) <= version.parse(pack.version) and not force:
-            log(f"{Fore.GREEN}{pack.id}{Fore.RESET} is already at the latest version. Use --force to force the upgrade",
+            log(f"{Fore.GREEN}{pack.id}{Fore.RESET} is already at the latest version.",
                 LogLevel.WARN)
         else:
             packs_to_upgrade[pack.id] = pack

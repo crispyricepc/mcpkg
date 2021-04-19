@@ -30,7 +30,7 @@ class Pack:
         """
         Removes spaces from a name. Also adds a source identifier i.e. 'back to blocks' becomes 'VanillaTweaks.BackToBlocks'
         """
-        return f"VanillaTweaks.{self.remote_name.title().replace(' ', '')}"
+        return f"{PackType(self.pack_type).display_id()}.{self.remote_name.title().replace(' ', '')}"
 
 
 class PackSet:
