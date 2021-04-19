@@ -91,7 +91,7 @@ def pack_filter_str(pack_set: PackSet, pack_filter: "Optional[list[str]]") -> Pa
 
         # More expensive fallback
         for pack in pack_set:
-            if pack.id.split(".")[1].lower() == search_term.lower():
+            if search_term.lower() in pack.id.split(".")[1].lower():
                 results[pack.id] = pack
 
     return results
