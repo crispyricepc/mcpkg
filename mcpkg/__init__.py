@@ -121,13 +121,10 @@ def list_packages(compact: bool, installed: bool, directory: Path):
         log("Pipe detected. Using compact layout", LogLevel.WARN)
 
     log("Listing packs:", LogLevel.INFO)
-    pack_filter = None
     if installed:
-        pack_set = worldmanager.get_installed_packs(
-            directory)
+        pack_set = worldmanager.get_installed_packs(directory)
     else:
         pack_set = syncdb.get_local_pack_list()
-        pack_set = pack_filter_str(pack_set, pack_filter)
 
     out_of_date = PackSet()
     for pack in pack_set:
