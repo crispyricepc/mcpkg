@@ -107,14 +107,10 @@ def upgrade(packs: "list[str]", force: bool, directory: Path):
     if packs:
         installed_packs = pack_filter_str(installed_packs, packs)
 
-    # Remove packs that don't need upgrading
-    packs_to_upgrade = PackSet()
-    for pack in installed_packs:
-        if version.parse(syncdb.get_pack_metadata(pack.id).version) <= version.parse(pack.version) and not force:
-            log(f"{Fore.GREEN}{pack.id}{Fore.RESET} is already at the latest version.",
-                LogLevel.WARN)
-        else:
-            packs_to_upgrade[pack.id] = pack
+    # Get full list of packs
+    packs_to_upgrade = pack_filter_str(syncdb.get_local_pack_list(), packs)
+    packs_to_upgrade.union(installed_packs)
+
     # Install them the usual way
     install_packs(packs_to_upgrade, directory, True)
 
