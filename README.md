@@ -30,6 +30,8 @@ pip install mcpkg
 
 ### Pre-release Version 0.1
 
+Here purely for archiving purposes, everything here has already been implemented
+
 - [x] Install support for crafting tweaks
 - [x] Install support for data packs
 - [x] Removing packages
@@ -39,7 +41,17 @@ pip install mcpkg
 - [x] Out-of-date notifications
 - [x] Prompting the user to auto-update all out-of-date packages
 
+### Pre-release Version 0.2
+
+My aim for 0.2 is to have more of the code shared between the 3 types of installation. Also, the super hotly demanded resourcepack feature is in the works
+
+- [ ] Resourcepack support
+- [ ] Share installation method across resource, crafting and data packs
+- [ ] Use pack grouping logic from vanillatweaks.net, instead of running our own
+
 ### Release Version 1.0
+
+I think a full release would mean that the project is in a situation where it has all the features one could possibly want out of a Vanilla Tweaks package manager
 
 - [ ] Completions
   - [ ] Bash
@@ -47,7 +59,6 @@ pip install mcpkg
   - [ ] Fish
   - [ ] Powershell
 - [ ] Install support for resource packs on server machines
-- [ ] Install support for resource packs on client machines
 
 ## FAQ
 
