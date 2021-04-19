@@ -1,5 +1,4 @@
 import json
-import re
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Optional
@@ -19,22 +18,6 @@ RP_URL = f"{VT_URL}/assets/resources/json/{config.MC_BASE_VERSION}/rpcategories.
 PACK_DB = config.CONFIG_DIR / "packdb.json"
 
 pack_data: Optional[PackSet] = None
-
-
-def formalise_name(name: str):
-    """
-    Removes spaces from a name. Also adds a source identifier i.e. 'back to blocks' becomes 'VanillaTweaks.BackToBlocks'
-    """
-    if not name:
-        log("Can't formalise name because there isn't one", LogLevel.ERROR)
-        raise SystemExit(-1)
-    if name_is_formalised(name):
-        return name
-    return f"VanillaTweaks.{name.title().replace(' ', '')}"
-
-
-def name_is_formalised(name: str) -> bool:
-    return "VanillaTweaks." in name
 
 
 def make_post(url: str, request: "dict[str, str]") -> str:
@@ -189,13 +172,3 @@ def get_local_pack_list() -> PackSet:
         packs = pack_data
 
     return packs
-
-
-def search_local_pack_list(expressions: "list[str]") -> PackSet:
-    results = PackSet()
-    for search_term in expressions:
-        for pack in get_local_pack_list():
-            if (re.search(search_term, pack.id) or re.search(
-                    search_term, pack.remote_name) or (pack.description and re.search(search_term, pack.description))):
-                results[pack.id] = pack
-    return results
