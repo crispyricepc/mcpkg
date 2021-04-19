@@ -55,10 +55,17 @@ def print_pack(pack: Pack, compact: bool, colour: bool) -> None:
 
 
 def install_packs(pack_set: PackSet, directory: Path, noconfirm=False):
+    # Merge with currently installed packs
+    pack_set.union(worldmanager.get_installed_packs(directory))
+
     # Split into pack types
     for pack_type in [PackType.DATA, PackType.CRAFTING, PackType.RESOURCE]:
         # subset = Only the packs of pack_type
         subset = pack_filter_type(pack_set, [pack_type])
+
+        # Skip if there are no packs in the subset
+        if len(subset) == 0:
+            continue
 
         # Get the download url from vanillatweaks.net
         dl_url = syncdb.post_pack_dl_request(subset, pack_type)

@@ -1,7 +1,6 @@
 from typing import Optional
 from mcpkg import config
 from pathlib import Path
-from colorama import Fore
 import shutil
 
 from .pack import Pack, PackSet, decode_packset, encode_packset
@@ -19,6 +18,10 @@ def directory_is_a_world(directory: Path) -> bool:
     """Returns true if the given directory is a Minecraft world"""
     # Considered the traits that are necessary for a Minecraft world
     return all((directory / path).exists() for path in WORLD_FILES)
+
+
+def directory_has_datapacks(directory: Path) -> bool:
+    return (directory / "eula.txt").exists() and directory_is_a_world(directory / "world") or directory_is_a_world(directory) or directory.name == "datapacks" and directory_is_a_world(directory.parent)
 
 
 def get_datapacks_dir(directory: Path) -> Path:
@@ -49,21 +52,23 @@ def get_installed_packs(directory: Optional[Path] = None) -> PackSet:
     """
     Returns a dictionary of packs installed to the world in the given directory
     """
-    if directory:
-        # Datapacks / Crafting Tweaks
-        packs_dir = get_datapacks_dir(directory)
-    else:
-        # Resource packs
-        packs_dir = RESOURCEPACKS_DIR
+    packs_dirs = [RESOURCEPACKS_DIR]
+    result = PackSet()
+    if directory and directory_has_datapacks(directory):
+        # All types of packs
+        packs_dirs.append(get_datapacks_dir(directory))
 
-    packs_file = packs_dir / ".packs.json"
+    for packs_dir in packs_dirs:
+        for pack_type in [PackType.RESOURCE, PackType.DATA, PackType.CRAFTING]:
+            packs_file = packs_dir / f".{pack_type}s.json"
 
-    if not packs_file.exists():
-        log("This world has no datapacks or is not managed by the tool", LogLevel.WARN)
-        return PackSet()
+            if not packs_file.exists():
+                continue
 
-    with packs_file.open() as file:
-        return decode_packset(file)
+            with packs_file.open() as file:
+                result.union(decode_packset(file))
+
+    return result
 
 
 def install_pack_group(source_zip: Path, dest_dir: Path, packs: PackSet, pack_type: PackType, noconfirm=False):
@@ -81,47 +86,11 @@ def install_pack_group(source_zip: Path, dest_dir: Path, packs: PackSet, pack_ty
         pack_dir / f"VanillaTweaks.{pack_type.display_id()}.zip")
     shutil.copy(source_zip, installed_pack_path)
 
-    packs_file = pack_dir / ".packs.json"
+    packs_file = pack_dir / f".{pack_type}s.json"
     with packs_file.open("w") as file:
         encode_packset(packs, file)
 
-    log(f"Installed pack group of type {pack_type}", LogLevel.INFO)
-
-
-def install_pack(source_zip: Path, dest_dir: Path, pack: Pack, noconfirm=False):
-    """
-    Installs a pre-downloaded zipped pack to the destination world
-    - `source_zip`: A path pointing to the pack to install
-    - `dest_dir`:   Any directory that can be identified by this module
-                    (doesn't have to be the exact datapacks folder)
-    """
-    datapack_dir = get_datapacks_dir(dest_dir)
-    packs_file = datapack_dir / ".packs.json"
-    installed_pack_path = (
-        datapack_dir / f"{pack.id}.{pack.version}.zip")
-
-    installed_packs = get_installed_packs(dest_dir)
-    if installed_packs.get(pack.id) and not noconfirm:
-        log(
-            f"The pack you are trying to install ({Fore.GREEN}{pack.id}{Fore.RESET}) already exists", LogLevel.WARN)
-        replace_pack = input("Replace? [y/N]: ").lower()
-        if not (replace_pack == "y" or replace_pack == "yes"):
-            return
-
-    log(f"Installing '{source_zip}' to '{installed_pack_path}'",
-        LogLevel.DEBUG)
-    shutil.copy(source_zip, installed_pack_path)
-
-    pack.installed = installed_pack_path
-    installed_packs[pack.id] = pack
-
-    log(f"Creating new managed entry in '{packs_file}'",
-        LogLevel.DEBUG)
-    with packs_file.open("w") as file:
-        encode_packset(installed_packs, file)
-
-    log(
-        f"Installed {Fore.GREEN}{pack.id}{Fore.RESET} v.{pack.version}", LogLevel.INFO)
+    log(f"Installed pack group of type {pack_type.display_id()}", LogLevel.INFO)
 
 
 def remove_pack(pack: Pack, directory: Path):
