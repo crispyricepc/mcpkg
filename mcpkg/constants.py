@@ -18,6 +18,14 @@ class PackType(str, Enum):
     DATA = "datapack"
     CRAFTING = "craftingtweak"
 
+    def display_id(self):
+        if self == PackType.RESOURCE:
+            return "ResourcePacks"
+        if self == PackType.DATA:
+            return "DataPacks"
+        if self == PackType.CRAFTING:
+            return "CraftingTweaks"
+
 
 class Pattern:
     DATAPACK = re.compile(r"^(?P<name>.*) v(?P<version>\d+\.\d+\.\d+).*$")

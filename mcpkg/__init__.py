@@ -22,7 +22,6 @@ Options:
 """
 
 from pathlib import Path
-from typing import Optional
 
 from colorama import Fore
 from docopt import docopt
@@ -33,7 +32,7 @@ import os
 from . import config, syncdb, worldmanager, fileio
 from .constants import LogLevel, PackType
 from .logger import log
-from .pack import Pack, PackSet
+from .pack import Pack, PackSet, pack_filter_str, pack_filter_type
 
 
 __version__ = get_distribution("mcpkg").version
@@ -55,58 +54,30 @@ def print_pack(pack: Pack, compact: bool, colour: bool) -> None:
             print(f"{' ' * 6}{description[i:i + page_width]}")
 
 
-def install_packs_from_url(packs_url: str, pack_type: PackType, directory: Path, pack: Optional[Pack] = None, noconfirm=False):
-    bytes = fileio.dl_with_progress(packs_url, "Downloading packs")
-    if pack_type == PackType.DATA:
-        pack_zips = fileio.separate_datapacks(bytes)
-    elif pack_type == PackType.CRAFTING:
-        if not pack:
-            log("Submit this issue, this code should never be reached", LogLevel.ERROR)
-            raise Exception()
-        pack_zips = {pack: fileio.separate_craftingtweak(bytes, pack)}
-    else:
-        log(f"The pack type '{pack_type}' is not currently supported",
-            LogLevel.ERROR)
-        raise SystemExit(-1)
-
-    for pack_zip_metadata in pack_zips.keys():
-        worldmanager.install_pack(
-            pack_zips[pack_zip_metadata],
-            directory,
-            pack_zip_metadata,
-            noconfirm
-        )
-
-
 def install_packs(pack_set: PackSet, directory: Path, noconfirm=False):
-    dl_urls = syncdb.post_pack_dl_request(pack_set)
-    log(f"Got '{dl_urls}'", LogLevel.DEBUG)
+    # Split into pack types
+    for pack_type in [PackType.DATA, PackType.CRAFTING, PackType.RESOURCE]:
+        # subset = Only the packs of pack_type
+        subset = pack_filter_type(pack_set, [pack_type])
 
-    for url_packtype in dl_urls.keys():
-        # Crafting Tweaks
-        if url_packtype == PackType.CRAFTING:
-            for url in dl_urls[url_packtype]:
-                pack_id = list(url.keys())[0]
-                pack = syncdb.get_pack_metadata(pack_id)
-                install_packs_from_url(
-                    url[pack_id], url_packtype, directory, pack, noconfirm)
+        # Get the download url from vanillatweaks.net
+        dl_url = syncdb.post_pack_dl_request(subset, pack_type)
+        log(f"Got '{dl_url}'", LogLevel.DEBUG)
 
-        # Datapacks
-        elif url_packtype == PackType.DATA:
-            install_packs_from_url(
-                dl_urls[url_packtype], url_packtype, directory, noconfirm)
+        # Download the file
+        bytes = fileio.dl_with_progress(dl_url, "Downloading packs")
 
-        # Resource packs (not yet implemented)
-        else:
-            log(f"The pack type '{url_packtype}' is not yet implemented",
-                LogLevel.ERROR)
-            raise SystemExit(-1)
+        # Move the bytes to disk, also run any pack specific scripts in here
+        pack_zips = fileio.move_to_disk(bytes, subset)
+        for zip_set in pack_zips.keys():
+            worldmanager.install_pack_group(
+                pack_zips[zip_set], directory, zip_set, pack_type, noconfirm)
 
 
 def install(expressions: "list[str]", directory: Path):
     log("Getting pack metadata...", LogLevel.INFO)
     packs = syncdb.get_local_pack_list()
-    packs.filter_by(expressions)
+    packs = pack_filter_str(packs, expressions)
     install_packs(packs, directory)
 
 
@@ -126,7 +97,7 @@ def update():
 def upgrade(packs: "list[str]", force: bool, directory: Path):
     installed_packs = worldmanager.get_installed_packs(directory)
     if packs:
-        installed_packs.filter_by(packs)
+        installed_packs = pack_filter_str(installed_packs, packs)
 
     # Remove packs that don't need upgrading
     packs_to_upgrade = PackSet()
@@ -152,7 +123,7 @@ def list_packages(compact: bool, installed: bool, directory: Path):
             directory)
     else:
         pack_set = syncdb.get_local_pack_list()
-        pack_set.filter_by(pack_filter)
+        pack_set = pack_filter_str(pack_set, pack_filter)
 
     out_of_date = PackSet()
     for pack in pack_set:

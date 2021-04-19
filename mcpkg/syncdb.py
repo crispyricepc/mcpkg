@@ -59,7 +59,7 @@ def make_post(url: str, request: "dict[str, str]") -> str:
     return f"{VT_URL}{response_message['link']}"
 
 
-def post_pack_dl_request(packs: PackSet):
+def post_pack_dl_request(packs: PackSet, pack_type: PackType) -> str:
     """
     Makes a POST request to the Vanilla Tweaks server.
     Returns a URL that should be used to download the packs
@@ -74,49 +74,21 @@ def post_pack_dl_request(packs: PackSet):
       version: 1.16
     ```
     """
-    request_datapacks = {}
-    response_links = {}
+    pack_request = {}
 
     for pack in packs:
-        # If the pack is a datapack
-        if pack.pack_type == PackType.DATA:
-            if pack.category not in request_datapacks:
-                request_datapacks[pack.category] = []
-            request_datapacks[pack.category].append(pack.remote_name)
+        assert pack.pack_type == pack_type
+        if pack.category not in pack_request:
+            pack_request[pack.category] = []
+        pack_request[pack.category].append(pack.remote_name)
 
-            # Make the POST request to get the datapacks download link
-            url = f"{VT_URL}/assets/server/zipdatapacks.php"
-            request_data = {
-                "packs": json.dumps(request_datapacks),
-                "version": "1.16"
-            }
-            response_links[PackType.DATA] = make_post(url, request_data)
-
-        # If the pack is a crafting tweaks
-        elif pack.pack_type == PackType.CRAFTING:
-            # Make individual requests so the VT server doesn't bundle the packs
-            url = f"{VT_URL}/assets/server/zipcraftingtweaks.php"
-            ct_request = {pack.category: [pack.remote_name]}
-            request_data = {
-                "packs": json.dumps(ct_request),
-                "version": "1.16"
-            }
-
-            if not response_links.get(PackType.CRAFTING):
-                response_links[PackType.CRAFTING] = []
-
-            # Make the POST request to get the crafting tweak download link
-            response_links[PackType.CRAFTING].append({
-                pack.id: make_post(url, request_data)
-            })
-
-        # Handle other cases
-        else:
-            log(f"The packtype '{pack.pack_type}' is not yet supported",
-                LogLevel.ERROR)
-            raise SystemExit(-1)
-
-    return response_links
+    # Make the POST request to get the packs download link
+    url = f"{VT_URL}/assets/server/zip{pack_type}s.php"
+    request_data = {
+        "packs": json.dumps(pack_request),
+        "version": "1.16"
+    }
+    return make_post(url, request_data)
 
 
 def vt_to_packdb(src: BytesIO, dst: Path, pack_type: PackType) -> None:

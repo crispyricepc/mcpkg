@@ -76,25 +76,34 @@ class PackSet:
         """
         self._content.update(s._content)
 
-    def filter_by(self, pack_filter: "Optional[list[str]]"):
-        if not pack_filter:
-            return
 
-        results = PackSet()
-        for search_term in pack_filter:
-            # First try to non-iteratively find
-            pack = self.get(search_term)
-            if pack:
-                results[search_term] = pack
-                continue
+def pack_filter_str(pack_set: PackSet, pack_filter: "Optional[list[str]]") -> PackSet:
+    if not pack_filter:
+        return pack_set
 
-            # More expensive fallback
-            for pack in self:
-                if pack.id.split(".")[1].lower() == search_term.lower():
-                    results[pack.id] = pack
+    results = PackSet()
+    for search_term in pack_filter:
+        # First try to non-iteratively find
+        pack = pack_set.get(search_term)
+        if pack:
+            results[search_term] = pack
+            continue
 
-        self._content = results._content
+        # More expensive fallback
+        for pack in pack_set:
+            if pack.id.split(".")[1].lower() == search_term.lower():
+                results[pack.id] = pack
 
+    return results
+
+
+def pack_filter_type(pack_set: PackSet, filters: "list[PackType]") -> PackSet:
+    results = PackSet()
+    for pack in pack_set:
+        if pack.pack_type in filters:
+            results[pack.id] = pack
+
+    return results
 
 # JSON Encoders / Decoders
 

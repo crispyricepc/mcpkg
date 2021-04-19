@@ -1,15 +1,18 @@
+from typing import Optional
+from mcpkg import config
 from pathlib import Path
 from colorama import Fore
 import shutil
 
 from .pack import Pack, PackSet, decode_packset, encode_packset
-from .constants import LogLevel
+from .constants import LogLevel, PackType
 from .logger import log
 
 
 WORLD_FILES = (
     "advancements", "data", "datapacks", "level.dat", "playerdata", "region", "stats"
 )
+RESOURCEPACKS_DIR = config.MC_FOLDER / "resourcepacks"
 
 
 def directory_is_a_world(directory: Path) -> bool:
@@ -42,12 +45,18 @@ def get_datapacks_dir(directory: Path) -> Path:
         raise SystemExit(-1)
 
 
-def get_installed_packs(directory: Path) -> PackSet:
+def get_installed_packs(directory: Optional[Path] = None) -> PackSet:
     """
     Returns a dictionary of packs installed to the world in the given directory
     """
-    datapack_dir = get_datapacks_dir(directory)
-    packs_file = datapack_dir / ".packs.json"
+    if directory:
+        # Datapacks / Crafting Tweaks
+        packs_dir = get_datapacks_dir(directory)
+    else:
+        # Resource packs
+        packs_dir = RESOURCEPACKS_DIR
+
+    packs_file = packs_dir / ".packs.json"
 
     if not packs_file.exists():
         log("This world has no datapacks or is not managed by the tool", LogLevel.WARN)
@@ -55,6 +64,28 @@ def get_installed_packs(directory: Path) -> PackSet:
 
     with packs_file.open() as file:
         return decode_packset(file)
+
+
+def install_pack_group(source_zip: Path, dest_dir: Path, packs: PackSet, pack_type: PackType, noconfirm=False):
+    """
+    Installs a pre-downloaded zipped group of packs of a particular type
+    - `source_zip`: A path pointing to the packs to install
+    - `dest_dir`:   Any directory that can be identified by this module
+                    (doesn't have to be the exact datapacks folder)
+    """
+    if pack_type == PackType.RESOURCE:
+        pack_dir = RESOURCEPACKS_DIR
+    else:
+        pack_dir = get_datapacks_dir(dest_dir)
+    installed_pack_path = (
+        pack_dir / f"VanillaTweaks.{pack_type.display_id()}.zip")
+    shutil.copy(source_zip, installed_pack_path)
+
+    packs_file = pack_dir / ".packs.json"
+    with packs_file.open("w") as file:
+        encode_packset(packs, file)
+
+    log(f"Installed pack group of type {pack_type}", LogLevel.INFO)
 
 
 def install_pack(source_zip: Path, dest_dir: Path, pack: Pack, noconfirm=False):

@@ -9,7 +9,7 @@ from tqdm import tqdm
 from . import syncdb
 from .constants import LogLevel, Pattern
 from .logger import log
-from .pack import Pack
+from .pack import Pack, PackSet
 
 
 def dl_with_progress(url: str, display: str) -> BytesIO:
@@ -68,12 +68,23 @@ def separate_datapacks(src_file: BytesIO) -> "dict[Pack, Path]":
     return output_packs
 
 
-def separate_craftingtweak(src_file: BytesIO, pack: Pack) -> Path:
+def move_to_disk(src_bytes: BytesIO, pack_set: PackSet) -> "dict[PackSet, Path]":
     """
-    Has the same signature as `separate_datapacks`, will most likely only move the file from memory to disk
+    Moves the bytes given from memory onto disk, separate the packs if necessary
+    """
+    log("Moving packs from memory to disk", LogLevel.DEBUG)
+    file_path = Path(mkdtemp()) / "packs.zip"
+    with open(file_path, "wb") as file:
+        file.write(src_bytes.read())
+    return {pack_set: file_path}
+
+
+def separate_craftingtweak(src_bytes: BytesIO, pack: Pack) -> Path:
+    """
+    Has similar signature as `separate_datapacks`, will most likely only move the file from memory to disk
     """
     log("Moving crafting tweak from memory to disk", LogLevel.DEBUG)
     file_path = Path(mkdtemp()) / f"{pack.id} v{pack.version}.zip"
     with open(file_path, "wb") as file:
-        file.write(src_file.read())
+        file.write(src_bytes.read())
     return Path(file_path)
