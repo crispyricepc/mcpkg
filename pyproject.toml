@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mcpkg"
-version = "0.2.2"
+version = "0.2.3"
 description = "Package manager for Minecraft datapacks and resourcepacks"
 authors = ["Ben Mitchell <bjosephmitchell@gmail.com>", "jerbob <mail@jeremiahboby.me>"]
 readme = "README.md"

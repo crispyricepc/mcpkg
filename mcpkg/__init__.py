@@ -6,7 +6,7 @@ Usage:
   mcpkg [-v] remove <packs>... [--path=<path>]
   mcpkg [-v] upgrade [<packs>...] [-f] [--path=<path>]
   mcpkg [-v] list [-ci] [--path=<path>]
-  mcpkg [-v] search [-c] [--path=<path>] <pattern>...
+  mcpkg [-v] search [-ci] [--path=<path>] <pattern>...
 
   mcpkg -h | --help
   mcpkg --version | -V
@@ -147,9 +147,14 @@ def list_packages(compact: bool, installed: bool, directory: Path):
         log("Run 'mcpkg upgrade' to update packs in this world", LogLevel.INFO)
 
 
-def search(expressions: "list[str]", compact: bool):
+def search(expressions: "list[str]", compact: bool, installed: bool, directory: Path):
     log("Searching:", LogLevel.INFO)
-    pack_set = syncdb.search_local_pack_list(expressions)
+    if not installed:
+        packs = syncdb.get_local_pack_list()
+    else:
+        packs = worldmanager.get_installed_packs()
+
+    pack_set = pack_filter_str(packs, expressions)
     for pack in pack_set:
         print_pack(pack, compact, config.IS_TTY)
 
@@ -184,4 +189,4 @@ def main() -> None:
             list_packages(compact, installed, Path(path))
 
     elif arguments["search"]:
-        search(arguments["<pattern>"], compact)
+        search(arguments["<pattern>"], compact, installed, Path(path))
