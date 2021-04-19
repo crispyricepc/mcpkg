@@ -78,8 +78,8 @@ class PackSet:
 
 
 def pack_filter_str(pack_set: PackSet, pack_filter: "Optional[list[str]]") -> PackSet:
-    if not pack_filter:
-        return pack_set
+    if not pack_filter or len(pack_filter) == 0:
+        return PackSet()
 
     results = PackSet()
     for search_term in pack_filter:
