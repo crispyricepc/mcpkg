@@ -85,8 +85,29 @@ def install_packs(pack_set: PackSet, directory: Path, noconfirm=False):
 def install(expressions: "list[str]", directory: Path):
     log("Getting pack metadata...", LogLevel.INFO)
     packs = syncdb.get_local_pack_list()
-    packs = pack_filter_str(packs, expressions)
-    install_packs(packs, directory)
+    packs_to_install = PackSet()
+
+    for expr in expressions:
+        log(f"Searching for packs matching the expression '{expr}'",
+            LogLevel.DEBUG)
+        expr_packs = pack_filter_str(packs, [expr]).to_list()
+        if len(expr_packs) > 1:
+            log(f"The search term '{expr}' returned multiple results:",
+                LogLevel.WARN)
+            for i in range(len(expr_packs)):
+                print(f"\t[ {i}{'*' if i == 0 else ' '}] ", end="")
+                print_pack(expr_packs[i], True, True)
+            str_choice = input(
+                "Choose a pack to install (default: 0, q to cancel): ")
+            if str_choice.lower() == "q":
+                return
+            choice = int(str_choice or 0)
+            expr_packs = [expr_packs[choice]]
+        assert len(expr_packs) <= 1
+        if len(expr_packs) == 1:
+            packs_to_install[expr_packs[0].id] = expr_packs[0]
+
+    install_packs(packs_to_install, directory)
 
 
 def remove_packs(expressions: "list[str]", directory: Path):

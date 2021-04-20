@@ -1,6 +1,7 @@
 import json
+from mcpkg.logger import log
 from pathlib import Path
-from mcpkg.constants import PackType
+from mcpkg.constants import LogLevel, PackType
 from typing import Any, Optional
 
 
@@ -76,6 +77,21 @@ class PackSet:
         """
         self._content.update(s._content)
 
+    def to_list(self):
+        """
+        Convert the set to a list of packs
+        """
+        return list(self._content.values())
+
+
+def _match_term(pack_set: PackSet, search_term: str) -> PackSet:
+    results = PackSet()
+    for pack in pack_set:
+        if search_term.lower() in pack.id.split(".")[1].lower():
+            results[pack.id] = pack
+
+    return results
+
 
 def pack_filter_str(pack_set: PackSet, pack_filter: "Optional[list[str]]") -> PackSet:
     if not pack_filter or len(pack_filter) == 0:
@@ -83,16 +99,21 @@ def pack_filter_str(pack_set: PackSet, pack_filter: "Optional[list[str]]") -> Pa
 
     results = PackSet()
     for search_term in pack_filter:
+        term_results = PackSet()
         # First try to non-iteratively find
         pack = pack_set.get(search_term)
         if pack:
-            results[search_term] = pack
+            term_results[search_term] = pack
             continue
 
         # More expensive fallback
-        for pack in pack_set:
-            if search_term.lower() in pack.id.split(".")[1].lower():
-                results[pack.id] = pack
+        term_results.union(_match_term(pack_set, search_term))
+
+        if len(term_results) == 0:
+            log(f"Could not find a pack matching the expression '{search_term}'",
+                LogLevel.WARN)
+        else:
+            results.union(term_results)
 
     return results
 
