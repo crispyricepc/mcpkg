@@ -1,4 +1,6 @@
 import json
+from mcpkg import config
+import mcpkg
 from mcpkg.logger import log
 from pathlib import Path
 from mcpkg.constants import LogLevel, PackType
@@ -82,6 +84,39 @@ class PackSet:
         Convert the set to a list of packs
         """
         return list(self._content.values())
+
+
+def pack_match_str(pack_set: PackSet, search_term: str) -> Optional[Pack]:
+    """
+    Returns the pack that closest matches the search query,
+
+    May ask the user for input
+    """
+    results = pack_filter_str(pack_set, [search_term]).to_list()
+    if len(results) == 0:
+        return None
+
+    if len(results) == 1:
+        return results[0]
+
+    # If we reach here, we need to ask the user to choose a result
+    log(f"The search term '{search_term}' returned multiple results:",
+        LogLevel.WARN)
+
+    # List all results
+    for i in range(len(results)):
+        print(f"\t[ {i}{'*' if i == 0 else ' '}] ", end="")
+        mcpkg.print_pack(results[i], True, config.IS_TTY)
+
+    # Ask for input
+    str_choice = input(
+        "Choose a pack to install (default: 0, q to cancel): ")
+    if str_choice.lower() == "q":
+        return
+    choice = int(str_choice or 0)
+
+    # Return the user's choice
+    return results[choice]
 
 
 def _match_term(pack_set: PackSet, search_term: str) -> PackSet:
