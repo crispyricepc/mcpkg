@@ -1,3 +1,5 @@
+import mcpkg
+
 from typing import Optional
 from mcpkg import config
 from pathlib import Path
@@ -84,6 +86,13 @@ def install_pack_group(source_zip: Path, dest_dir: Path, packs: PackSet, pack_ty
         pack_dir = get_datapacks_dir(dest_dir)
     installed_pack_path = (
         pack_dir / f"VanillaTweaks.{pack_type.display_id()}.zip")
+
+    # Print what packs we're installing
+    log(f"Installing the following {pack_type.display_id()}:", LogLevel.INFO)
+    for pack in packs:
+        print("\t", end="")
+        mcpkg.print_pack(pack, True, config.IS_TTY)
+
     shutil.copy(source_zip, installed_pack_path)
 
     packs_file = pack_dir / f".{pack_type}s.json"
