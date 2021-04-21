@@ -7,9 +7,9 @@ from zipfile import ZipFile
 from pathlib import Path
 
 from . import syncdb
-from .constants import LogLevel, Pattern
+from .constants import LogLevel, PackType, Pattern
 from .logger import log
-from .pack import Pack, PackSet
+from .pack import PackSet
 
 
 def dl_with_progress(url: str, display: str) -> BytesIO:
@@ -30,7 +30,7 @@ def dl_with_progress(url: str, display: str) -> BytesIO:
     return buffer
 
 
-def separate_datapacks(src_file: BytesIO) -> "dict[Pack, Path]":
+def separate_datapacks(src_file: BytesIO) -> "dict[PackSet, Path]":
     """
     Separates a single zip file into their stored packs
     """
@@ -42,7 +42,7 @@ def separate_datapacks(src_file: BytesIO) -> "dict[Pack, Path]":
 
         # If datapacks, the child objects of the zip should be more zip files
         output_zips = tmploc.glob("*.zip")
-        output_packs: "dict[Pack, Path]" = {}
+        output_packs: "dict[PackSet, Path]" = {}
 
         for pack_zip in output_zips:
             match = Pattern.DATAPACK.match(pack_zip.stem)
@@ -59,7 +59,9 @@ def separate_datapacks(src_file: BytesIO) -> "dict[Pack, Path]":
 
             # Overwrite the database's version with ours
             pack.version = match.group("version")
-            output_packs[pack] = pack_zip
+            o_packset = PackSet()
+            o_packset[pack.id] = pack
+            output_packs[o_packset] = pack_zip
 
     return output_packs
 
@@ -69,18 +71,17 @@ def move_to_disk(src_bytes: BytesIO, pack_set: PackSet) -> "dict[PackSet, Path]"
     Moves the bytes given from memory onto disk, separate the packs if necessary
     """
     log("Moving packs from memory to disk", LogLevel.DEBUG)
-    file_path = Path(mkdtemp()) / "packs.zip"
-    with open(file_path, "wb") as file:
-        file.write(src_bytes.read())
-    return {pack_set: file_path}
 
+    packs: dict[PackSet, Path] = {}
 
-def separate_craftingtweak(src_bytes: BytesIO, pack: Pack) -> Path:
-    """
-    Has similar signature as `separate_datapacks`, will most likely only move the file from memory to disk
-    """
-    log("Moving crafting tweak from memory to disk", LogLevel.DEBUG)
-    file_path = Path(mkdtemp()) / f"{pack.id} v{pack.version}.zip"
-    with open(file_path, "wb") as file:
-        file.write(src_bytes.read())
-    return Path(file_path)
+    # If type is datapack, separate into separate packs
+    if len(pack_set) != 0 and pack_set.to_list()[0].pack_type == PackType.DATA:
+        packs = separate_datapacks(src_bytes)
+
+    else:
+        file_path = Path(mkdtemp()) / "packs.zip"
+        with open(file_path, "wb") as file:
+            file.write(src_bytes.read())
+        packs[pack_set] = file_path
+
+    return packs

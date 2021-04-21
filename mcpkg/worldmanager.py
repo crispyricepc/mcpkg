@@ -84,13 +84,17 @@ def install_pack_group(source_zip: Path, dest_dir: Path, packs: PackSet, pack_ty
         pack_dir = RESOURCEPACKS_DIR
     else:
         pack_dir = get_datapacks_dir(dest_dir)
-    installed_pack_path = (
-        pack_dir / f"VanillaTweaks.{pack_type.display_id()}.zip")
+
+    if pack_type == PackType.DATA:
+        assert len(packs) == 1
+        installed_pack_path = pack_dir / f"{packs.to_list()[0].id}.zip"
+    else:
+        installed_pack_path = (
+            pack_dir / f"VanillaTweaks.{pack_type.display_id()}.zip")
 
     # Print what packs we're installing
-    log(f"Installing the following {pack_type.display_id()}:", LogLevel.INFO)
     for pack in packs:
-        print("\t", end="")
+        log("Installing ", LogLevel.INFO, end="")
         mcpkg.print_pack(pack, True, config.IS_TTY)
 
     shutil.copy(source_zip, installed_pack_path)
@@ -98,8 +102,6 @@ def install_pack_group(source_zip: Path, dest_dir: Path, packs: PackSet, pack_ty
     packs_file = pack_dir / f".{pack_type}s.json"
     with packs_file.open("w") as file:
         encode_packset(packs, file)
-
-    log(f"Installed pack group of type {pack_type.display_id()}", LogLevel.INFO)
 
 
 def remove_pack(pack: Pack, directory: Path):
