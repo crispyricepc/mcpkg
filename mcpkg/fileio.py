@@ -12,7 +12,7 @@ from .logger import log
 from .pack import PackSet
 
 
-def dl_with_progress(url: str, display: str) -> BytesIO:
+def dl_with_progress(url: str, display="Downloading...") -> BytesIO:
     # Streaming, so we can iterate over the response.
     response = requests.get(url, stream=True)
     total_downloaded = 0
@@ -22,7 +22,7 @@ def dl_with_progress(url: str, display: str) -> BytesIO:
     for data in response.iter_content(block_size):
         total_downloaded += len(data)
         print(
-            f"[{Fore.GREEN}INFO{Fore.RESET}] Downloading... [{round((total_downloaded / total_size) * 100, 1)}%]\r", end="", flush=True, file=stderr)
+            f"[{Fore.GREEN}INFO{Fore.RESET}] {display} [{round((total_downloaded / total_size) * 100, 1)}%]\r", end="", flush=True, file=stderr)
         buffer.write(data)
     buffer.seek(0)
     print()

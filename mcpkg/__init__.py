@@ -73,7 +73,8 @@ def install_packs(pack_set: PackSet, directory: Path, noconfirm=False):
         log(f"Got '{dl_url}'", LogLevel.DEBUG)
 
         # Download the file
-        bytes = fileio.dl_with_progress(dl_url, "Downloading packs")
+        bytes = fileio.dl_with_progress(
+            dl_url, f"Downloading {pack_type.display_id()}...")
 
         # Move the bytes to disk, also run any pack specific scripts in here
         pack_zips = fileio.move_to_disk(bytes, subset)
