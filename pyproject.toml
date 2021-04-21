@@ -10,7 +10,6 @@ python = "^3.7"
 requests = "^2.25.1"
 colorama = "^0.4.4"
 pathlib = "^1.0.1"
-tqdm = "^4.56.0"
 packaging = "^20.9"
 docopt = "^0.6.2"
 
