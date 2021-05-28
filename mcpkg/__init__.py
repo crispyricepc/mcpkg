@@ -76,6 +76,9 @@ def install_packs(pack_set: PackSet, directory: Path, noconfirm=False):
         bytes = fileio.dl_with_progress(
             dl_url, f"Downloading {pack_type.display_id()}...")
 
+        # Remove the previously installed packs
+        worldmanager.remove_pack_group(pack_type, directory)
+
         # Move the bytes to disk, also run any pack specific scripts in here
         pack_zips = fileio.move_to_disk(bytes, subset)
         for zip_set in pack_zips.keys():
@@ -88,6 +91,7 @@ def install(expressions: "list[str]", directory: Path):
     packs = syncdb.get_local_pack_list()
     packs_to_install = PackSet()
 
+    # Iterate through every pack, looking for matches to the search expressions
     for expr in expressions:
         log(f"Searching for packs matching the expression '{expr}'",
             LogLevel.DEBUG)
@@ -95,6 +99,7 @@ def install(expressions: "list[str]", directory: Path):
         if pack:
             packs_to_install[pack.id] = pack
 
+    # Install all found results
     install_packs(packs_to_install, directory)
 
 

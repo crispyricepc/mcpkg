@@ -4,10 +4,12 @@ from typing import Optional
 from mcpkg import config
 from pathlib import Path
 import shutil
+import copy
 
 from .pack import Pack, PackSet, decode_packset, encode_packset
 from .constants import LogLevel, PackType
 from .logger import log
+from mcpkg import logger
 
 
 WORLD_FILES = (
@@ -102,6 +104,36 @@ def install_pack_group(source_zip: Path, dest_dir: Path, packs: PackSet, pack_ty
     packs_file = pack_dir / f".{pack_type}s.json"
     with packs_file.open("w") as file:
         encode_packset(packs, file)
+
+
+def remove_pack_group(pack_type: PackType, world_dir: Optional[Path] = None):
+    """
+    Removes a pack group by its type
+    """
+    if pack_type == PackType.RESOURCE:
+        pack_dir = RESOURCEPACKS_DIR
+    elif world_dir:
+        pack_dir = get_datapacks_dir(world_dir)
+    else:
+        logger.log(f"Can't remove pack group of type '{pack_type}' if world_dir is None",
+                   LogLevel.ERROR)
+        raise SystemExit(-1)
+
+    installed_packs = get_installed_packs(pack_dir)
+    remaining_packs = copy.deepcopy(installed_packs)
+    for pack in installed_packs:
+        log(f"Removing '{pack.id}'", LogLevel.INFO)
+
+        if pack.installed.exists():
+            log(f"Removing '{pack.installed}'", LogLevel.DEBUG)
+            pack.installed.unlink()
+        log(f"Removing managed entry for '{pack.id}'",
+            LogLevel.DEBUG)
+        del remaining_packs[pack.id]
+
+    # Write changes
+    with (pack_dir / ".packs.json").open("w") as fp:
+        encode_packset(remaining_packs, fp)
 
 
 def remove_pack(pack: Pack, directory: Path):
