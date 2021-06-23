@@ -1,11 +1,19 @@
 package dev.benmitchell.mcpkg;
 
-/**
- * Hello world!
- *
- */
+import java.util.ArrayList;
+import java.util.List;
+
+import dev.benmitchell.mcpkg.packs.Pack;
+import dev.benmitchell.mcpkg.sources.PackSource;
+import dev.benmitchell.mcpkg.vanillatweaks.VTSource;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("This is mcpkg java edition");
+        PackSource src = new VTSource();
+        List<String> packsToGet = new ArrayList<String>();
+        packsToGet.add("BackToBlocks");
+        for (Pack pack : src.getPacks(packsToGet)) {
+            System.out.println(pack.getPackId());
+        }
     }
 }

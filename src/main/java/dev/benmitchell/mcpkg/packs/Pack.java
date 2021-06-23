@@ -17,6 +17,12 @@ public interface Pack {
     public boolean isDownloaded();
 
     /**
+     * @return The type (mod, datapack, resource pack etc.) that this package
+     *         represents
+     */
+    public PackType getPackType();
+
+    /**
      * Sets the pack to downloaded, with the data being the contents of the byte
      * array
      */
