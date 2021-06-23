@@ -4,13 +4,25 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Poetry: Install",
+            "label": "compile",
             "type": "shell",
-            "command": "poetry install",
+            "command": "mvn -B compile",
             "group": {
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "verify",
+            "type": "shell",
+            "command": "mvn -B verify",
+            "group": "build"
+        },
+        {
+            "label": "test",
+            "type": "shell",
+            "command": "mvn -B test",
+            "group": "test"
         }
     ]
 }
