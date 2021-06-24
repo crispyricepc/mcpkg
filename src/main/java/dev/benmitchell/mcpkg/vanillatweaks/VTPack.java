@@ -1,9 +1,7 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
 import java.io.ByteArrayInputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.json.simple.JSONArray;
@@ -12,7 +10,7 @@ import org.json.simple.JSONObject;
 import dev.benmitchell.mcpkg.packs.Pack;
 import dev.benmitchell.mcpkg.packs.PackType;
 
-public class VTPack implements Pack {
+public abstract class VTPack implements Pack {
     private String packId;
     private boolean downloaded;
     private PackType packType;
@@ -76,18 +74,6 @@ public class VTPack implements Pack {
     @Override
     public void setDownloadedData(ByteArrayInputStream downloadedData) {
         this.downloadedData = downloadedData;
-
-    }
-
-    @Override
-    public void installTo(Path destination) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void install() {
-        // TODO Auto-generated method stub
 
     }
 }
