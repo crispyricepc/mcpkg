@@ -32,6 +32,9 @@ public class VTSource extends PackSource {
         TYPE_INITIAL_MAP.put("ct", PackType.CRAFTINGPACK);
     }
 
+    /**
+     * Gets metadata about the packs from either a cache file or from the internet
+     */
     private List<VTPack> getPackCache() {
         List<VTPack> packs = new ArrayList<VTPack>();
 
