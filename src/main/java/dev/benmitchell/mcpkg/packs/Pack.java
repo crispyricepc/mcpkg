@@ -2,14 +2,33 @@ package dev.benmitchell.mcpkg.packs;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Path;
+import java.util.List;
 
 public interface Pack {
     /**
-     * Returns the unique ID of the pack
-     * 
-     * @return
+     * @return The unique ID of the pack
      */
     public String getPackId();
+
+    /**
+     * @return A human readable name for the pack
+     */
+    public String getDisplayName();
+
+    /**
+     * @return A short description of the pack
+     */
+    public String getDescription();
+
+    /**
+     * @return A list of pack IDs that this pack requires to be installed
+     */
+    public List<String> getDependencies();
+
+    /**
+     * @return A list of pack IDs that this pack is incompatible with
+     */
+    public List<String> getIncompatibilities();
 
     /**
      * @return true if the pack data is stored
