@@ -45,26 +45,22 @@ public class VTPack implements Pack {
 
     @Override
     public String getDisplayName() {
-        // TODO Auto-generated method stub
-        return null;
+        return display;
     }
 
     @Override
     public String getDescription() {
-        // TODO Auto-generated method stub
-        return null;
+        return description;
     }
 
     @Override
     public List<String> getDependencies() {
-        // TODO Auto-generated method stub
-        return null;
+        return new ArrayList<String>(0);
     }
 
     @Override
     public List<String> getIncompatibilities() {
-        // TODO Auto-generated method stub
-        return null;
+        return incompatible;
     }
 
     @Override
