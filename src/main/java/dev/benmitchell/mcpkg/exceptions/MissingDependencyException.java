@@ -1,5 +1,7 @@
 package dev.benmitchell.mcpkg.exceptions;
 
+import java.util.List;
+
 import dev.benmitchell.mcpkg.packs.Pack;
 
 public class MissingDependencyException extends Exception {
