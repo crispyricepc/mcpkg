@@ -19,6 +19,7 @@ import org.json.simple.parser.ParseException;
 
 import dev.benmitchell.mcpkg.DownloadManager;
 import dev.benmitchell.mcpkg.Platform;
+import dev.benmitchell.mcpkg.exceptions.InvalidPackTypeException;
 import dev.benmitchell.mcpkg.packs.Pack;
 import dev.benmitchell.mcpkg.packs.PackType;
 import dev.benmitchell.mcpkg.sources.PackSource;
@@ -35,8 +36,8 @@ public class VTSource extends PackSource {
     /**
      * Gets metadata about the packs from either a cache file or from the internet
      */
-    private List<VTPack> getPackCache() {
-        List<VTPack> packs = new ArrayList<VTPack>();
+    private List<Pack> getPackCache() {
+        List<Pack> packs = new ArrayList<Pack>();
 
         // Download the pack cache if it doesn't exist, or the date last modified on the
         // file is > 1 day
@@ -67,7 +68,20 @@ public class VTSource extends PackSource {
             // Build the list of packs
             for (Object category : (JSONArray) jObject.get("categories")) {
                 for (Object pack : (JSONArray) ((JSONObject) category).get("packs")) {
-                    packs.add(new VTPack((JSONObject) pack, TYPE_INITIAL_MAP.get(typeInitials)));
+                    PackType pType = TYPE_INITIAL_MAP.get(typeInitials);
+                    switch (pType) {
+                        case CRAFTINGPACK:
+                            packs.add(new VTCraftingPack((JSONObject) pack));
+                            break;
+                        case DATAPACK:
+                            packs.add(new VTDataPack((JSONObject) pack));
+                            break;
+                        case RESOURCEPACK:
+                            packs.add(new VTResourcePack((JSONObject) pack));
+                            break;
+                        default:
+                            throw new InvalidPackTypeException(pType);
+                    }
                 }
             }
         }
@@ -78,7 +92,7 @@ public class VTSource extends PackSource {
     @Override
     public List<Pack> getPacks(List<String> packIds) {
         List<Pack> packsToReturn = new ArrayList<Pack>();
-        for (VTPack pack : getPackCache()) {
+        for (Pack pack : getPackCache()) {
             if (packIds.contains(pack.getPackId()))
                 packsToReturn.add(pack);
         }
