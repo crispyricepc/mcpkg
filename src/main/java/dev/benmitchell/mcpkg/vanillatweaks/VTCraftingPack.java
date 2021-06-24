@@ -1,15 +1,15 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
 import org.json.simple.JSONObject;
 
-import dev.benmitchell.mcpkg.packs.CraftingPack;
+import dev.benmitchell.mcpkg.packs.DataPack;
 import dev.benmitchell.mcpkg.packs.PackType;
 
-public class VTCraftingPack extends CraftingPack {
+public class VTCraftingPack extends DataPack {
     private class Inner extends VTPack {
         private VTCraftingPack rPack;
 
@@ -22,11 +22,6 @@ public class VTCraftingPack extends CraftingPack {
         @Override
         public void installTo(Path destination) {
             rPack.installTo(destination);
-        }
-
-        @Override
-        public void install() {
-            rPack.install();
         }
     }
 
@@ -74,7 +69,12 @@ public class VTCraftingPack extends CraftingPack {
     }
 
     @Override
-    public void setDownloadedData(ByteArrayInputStream downloadedData) {
+    public File getDownloadedData() {
+        return inner.getDownloadedData();
+    }
+
+    @Override
+    public void setDownloadedData(File downloadedData) {
         inner.setDownloadedData(downloadedData);
     }
 }

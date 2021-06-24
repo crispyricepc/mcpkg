@@ -1,17 +1,18 @@
 package dev.benmitchell.mcpkg.packs;
 
+import java.io.File;
 import java.nio.file.Path;
+
+import dev.benmitchell.mcpkg.Platform;
 
 public abstract class ResourcePack implements Pack {
     @Override
     public void installTo(Path destination) {
-        // TODO Auto-generated method stub
-
+        File downloaded = getDownloadedData();
+        downloaded.renameTo(destination.resolve(getPackId() + ".zip").toFile());
     }
 
-    @Override
     public void install() {
-        // TODO Auto-generated method stub
-
+        installTo(Platform.getResourcePacksDir());
     }
 }

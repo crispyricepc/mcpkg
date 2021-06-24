@@ -1,6 +1,6 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +14,7 @@ public abstract class VTPack implements Pack {
     private String packId;
     private boolean downloaded;
     private PackType packType;
-    private ByteArrayInputStream downloadedData;
+    private File downloadedData;
     private String display;
     private String description;
     private List<String> incompatible;
@@ -72,8 +72,12 @@ public abstract class VTPack implements Pack {
     }
 
     @Override
-    public void setDownloadedData(ByteArrayInputStream downloadedData) {
-        this.downloadedData = downloadedData;
+    public File getDownloadedData() {
+        return downloadedData;
+    }
 
+    @Override
+    public void setDownloadedData(File downloadedData) {
+        this.downloadedData = downloadedData;
     }
 }

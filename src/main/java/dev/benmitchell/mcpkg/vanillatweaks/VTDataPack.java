@@ -1,6 +1,6 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -22,11 +22,6 @@ public class VTDataPack extends DataPack {
         @Override
         public void installTo(Path destination) {
             rPack.installTo(destination);
-        }
-
-        @Override
-        public void install() {
-            rPack.install();
         }
     }
 
@@ -74,7 +69,12 @@ public class VTDataPack extends DataPack {
     }
 
     @Override
-    public void setDownloadedData(ByteArrayInputStream downloadedData) {
+    public File getDownloadedData() {
+        return inner.getDownloadedData();
+    }
+
+    @Override
+    public void setDownloadedData(File downloadedData) {
         inner.setDownloadedData(downloadedData);
     }
 }

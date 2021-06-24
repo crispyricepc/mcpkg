@@ -1,6 +1,6 @@
 package dev.benmitchell.mcpkg.packs;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -42,10 +42,15 @@ public interface Pack {
     public PackType getPackType();
 
     /**
-     * Sets the pack to downloaded, with the data being the contents of the byte
-     * array
+     * @return The data on disk that's been downloaded
      */
-    public void setDownloadedData(ByteArrayInputStream downloadedData);
+    public File getDownloadedData();
+
+    /**
+     * Sets the pack to downloaded, with the data being stored in the location at
+     * downloadedData
+     */
+    public void setDownloadedData(File downloadedData);
 
     /**
      * Installs the pack to a given destination
@@ -54,14 +59,4 @@ public interface Pack {
      *                                    installed
      */
     public void installTo(Path destination);
-
-    /**
-     * Installs the pack to a given destination
-     * 
-     * @throws MissingDependencyException if not all the required dependencies are
-     *                                    installed
-     * 
-     * @see #installTo(Path)
-     */
-    public void install();
 }

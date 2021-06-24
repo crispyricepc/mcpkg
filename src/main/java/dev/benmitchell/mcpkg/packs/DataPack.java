@@ -8,10 +8,4 @@ public abstract class DataPack implements Pack {
         // TODO Auto-generated method stub
 
     }
-
-    @Override
-    public void install() {
-        // TODO Auto-generated method stub
-
-    }
 }
