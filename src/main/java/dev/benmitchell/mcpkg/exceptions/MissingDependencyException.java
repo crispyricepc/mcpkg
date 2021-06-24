@@ -3,7 +3,7 @@ package dev.benmitchell.mcpkg.exceptions;
 import dev.benmitchell.mcpkg.packs.Pack;
 
 public class MissingDependencyException extends Exception {
-    public MissingDependencyException(String dependencyId, Pack pack) {
-        super("The pack '" + dependencyId + "' is required to install '" + pack.getDisplayName() + "'");
+    public MissingDependencyException(List<String> dependencyIds, Pack pack) {
+        super("The packs " + String.join(", ", dependencyIds) + "are required to install " + pack.getPackId());
     }
 }
