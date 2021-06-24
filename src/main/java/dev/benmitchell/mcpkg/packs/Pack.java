@@ -30,11 +30,17 @@ public interface Pack {
 
     /**
      * Installs the pack to a given destination
+     * 
+     * @throws MissingDependencyException if not all the required dependencies are
+     *                                    installed
      */
     public void installTo(Path destination);
 
     /**
      * Installs the pack to a given destination
+     * 
+     * @throws MissingDependencyException if not all the required dependencies are
+     *                                    installed
      * 
      * @see #installTo(Path)
      */
