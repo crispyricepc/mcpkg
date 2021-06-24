@@ -101,8 +101,18 @@ public class VTSource extends PackSource {
 
     @Override
     public List<Pack> searchForPacks(List<String> keywords) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Pack> packsToReturn = new ArrayList<Pack>();
+
+        for (Pack pack : getPackCache()) {
+            for (String keyword : keywords) {
+                if (pack.getPackId().toLowerCase().contains(keyword.toLowerCase())
+                        || pack.getDisplayName().toLowerCase().contains(keyword.toLowerCase())) {
+                    packsToReturn.add(pack);
+                }
+            }
+        }
+
+        return packsToReturn;
     }
 
     @Override
