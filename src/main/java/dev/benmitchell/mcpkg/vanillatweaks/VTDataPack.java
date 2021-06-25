@@ -1,8 +1,6 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.util.List;
 
 import org.json.simple.JSONObject;
 
