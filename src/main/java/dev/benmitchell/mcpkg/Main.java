@@ -11,9 +11,8 @@ public class Main {
     public static void main(String[] args) {
         PackSource src = new VTSource();
         List<String> packsToGet = new ArrayList<String>();
-        packsToGet.add("BackToBlocks");
-        for (Pack pack : src.getPacks(packsToGet)) {
-            System.out.println(pack.getPackId());
-        }
+        packsToGet.add("slime");
+        List<Pack> packs = src.searchForPacks(packsToGet);
+        src.downloadPacks(packs);
     }
 }

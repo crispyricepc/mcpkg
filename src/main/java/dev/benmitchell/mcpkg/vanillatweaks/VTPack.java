@@ -21,6 +21,7 @@ public abstract class VTPack implements Pack {
 
     // Vanilla tweaks remote data
     private String name;
+    private String category;
 
     public VTPack(JSONObject jObject, PackType pType) {
         name = (String) jObject.get("name");
@@ -79,5 +80,13 @@ public abstract class VTPack implements Pack {
     @Override
     public void setDownloadedData(File downloadedData) {
         this.downloadedData = downloadedData;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCategory() {
+        return category;
     }
 }

@@ -30,7 +30,7 @@ public class VTSource extends PackSource {
         TYPE_INITIAL_MAP = new HashMap<String, PackType>();
         TYPE_INITIAL_MAP.put("rp", PackType.RESOURCEPACK);
         TYPE_INITIAL_MAP.put("dp", PackType.DATAPACK);
-        TYPE_INITIAL_MAP.put("ct", PackType.CRAFTINGPACK);
+        TYPE_INITIAL_MAP.put("ct", PackType.CRAFTINGTWEAK);
     }
 
     /**
@@ -48,7 +48,7 @@ public class VTSource extends PackSource {
                 try {
                     DownloadManager.downloadToFile(new URL(
                             "https://vanillatweaks.net/assets/resources/json/1.17/" + typeInitials + "categories.json"),
-                            packCacheFile, true);
+                            packCacheFile, false);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -70,7 +70,7 @@ public class VTSource extends PackSource {
                 for (Object pack : (JSONArray) ((JSONObject) category).get("packs")) {
                     PackType pType = TYPE_INITIAL_MAP.get(typeInitials);
                     switch (pType) {
-                        case CRAFTINGPACK:
+                        case CRAFTINGTWEAK:
                             packs.add(new VTCraftingPack((JSONObject) pack));
                             break;
                         case DATAPACK:
@@ -117,7 +117,33 @@ public class VTSource extends PackSource {
 
     @Override
     public List<Pack> downloadPacks(List<Pack> packs) {
-        // TODO Auto-generated method stub
+        for (Pack pack : packs) {
+            String typeString = pack.getPackType().toString().toLowerCase();
+
+            // Create request
+            VTPack vtPack = (VTPack) pack;
+            Map<String, List<String>> jsonMap = new HashMap<String, List<String>>();
+            List<String> requestList = new ArrayList<String>(1);
+            requestList.add(vtPack.getName());
+            jsonMap.put(vtPack.getCategory(), requestList);
+            JSONObject jObject = new JSONObject(jsonMap);
+
+            // Create request
+            Map<String, String> postMap = new HashMap<String, String>();
+            postMap.put("version", "1.17");
+            postMap.put("packs", jObject.toJSONString());
+            try {
+                URL requestUrl = new URL("https://vanillatweaks.net/assets/server/zip" + typeString + "s.php");
+                String response = DownloadManager.postRequest(requestUrl, postMap);
+                JSONParser jParser = new JSONParser();
+                JSONObject responseJsonObject = (JSONObject) jParser.parse(response);
+                DownloadManager.downloadToFile(
+                        new URL("https://vanillatweaks.net/" + responseJsonObject.get("link").toString()),
+                        new File("test_dest.zip"), false);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        }
         return null;
     }
 }
