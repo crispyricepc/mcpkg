@@ -1,6 +1,7 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,5 +90,11 @@ public abstract class VTPack implements Pack {
 
     public String getCategory() {
         return category;
+    }
+
+    @Override
+    public void installTo(Path destination) {
+        // TODO Auto-generated method stub
+
     }
 }
