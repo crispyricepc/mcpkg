@@ -25,7 +25,7 @@ public class VTDataPack extends VTPack {
         try (ZipFile zf = new ZipFile(downloadedData)) {
             for (ZipEntry entry : Collections.list(zf.entries()))
                 try (InputStream zis = zf.getInputStream(entry);
-                        OutputStream zos = new FileOutputStream(destination.toFile())) {
+                        OutputStream zos = new FileOutputStream(destination.resolve(getPackId() + ".zip").toFile())) {
                     zis.transferTo(zos);
                 }
         }
@@ -33,6 +33,6 @@ public class VTDataPack extends VTPack {
 
     @Override
     public void install() throws IOException, InvalidDirectoryException {
-        installTo(Platform.getDataPacksDir().resolve(getPackId() + ".zip"));
+        installTo(Platform.getDataPacksDir());
     }
 }
