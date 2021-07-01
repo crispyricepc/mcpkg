@@ -44,7 +44,7 @@ public abstract class VTPack implements Pack {
         packType = pType;
     }
 
-    private void deleteDownloadedData() {
+    public void deleteDownloadedData() {
         try {
             Files.delete(downloadedData.toPath());
             downloadedData = null;
