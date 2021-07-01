@@ -4,6 +4,8 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
+import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
+
 public interface Pack {
     /**
      * @return The unique ID of the pack
@@ -66,5 +68,5 @@ public interface Pack {
      * @throws MissingDependencyException if not all the required dependencies are
      *                                    installed
      */
-    public void install();
+    public void install() throws InvalidDirectoryException;
 }
