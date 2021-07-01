@@ -6,6 +6,8 @@ import java.nio.file.Paths;
 
 import org.apache.commons.lang3.SystemUtils;
 
+import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
+
 public class Platform {
     private static final Path DOT_MINECRAFT_PATH;
     static {
@@ -42,6 +44,24 @@ public class Platform {
     }
 
     public static Path getResourcePacksDir() {
-        return getDotMinecraftPath().resolve("resourcepacks");
+        return DOT_MINECRAFT_PATH.resolve("resourcepacks");
+    }
+
+    public static Path getDataPacksDir() throws InvalidDirectoryException {
+        Path cwd = Paths.get(SystemUtils.USER_DIR);
+
+        // If we're in a datapacks directory inside .minecraft
+        if (cwd // .minecraft/saves/some_save_folder/datapacks
+                .getParent() // .minecraft/saves/some_save_folder
+                .getParent() // .minecraft/saves
+                .equals(DOT_MINECRAFT_PATH.resolve("saves")) && cwd.getName(-1).equals(Paths.get("datapacks")))
+            return cwd;
+        // If we're in a worlds directory inside .minecraft
+        if (cwd // .minecraft/saves/some_save_folder
+                .getParent() // .minecraft/saves
+                .equals(DOT_MINECRAFT_PATH.resolve("saves")))
+            return cwd.resolve("datapacks");
+
+        throw new InvalidDirectoryException(cwd, "A unique data pack directory couldn't be found");
     }
 }
