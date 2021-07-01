@@ -59,4 +59,12 @@ public interface Pack {
      *                                    installed
      */
     public void installTo(Path destination);
+
+    /**
+     * Installs the pack to a set destination
+     * 
+     * @throws MissingDependencyException if not all the required dependencies are
+     *                                    installed
+     */
+    public void install();
 }
