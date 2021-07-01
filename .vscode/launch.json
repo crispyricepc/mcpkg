@@ -15,7 +15,8 @@
             "name": "Launch Main",
             "request": "launch",
             "mainClass": "dev.benmitchell.mcpkg.Main",
-            "projectName": "mcpkg"
+            "projectName": "mcpkg",
+            "cwd": "${env:HOME}/.minecraft/saves/New World"
         }
     ]
 }
