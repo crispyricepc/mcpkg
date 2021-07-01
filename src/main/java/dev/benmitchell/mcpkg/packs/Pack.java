@@ -51,12 +51,6 @@ public interface Pack {
     public File getDownloadedData();
 
     /**
-     * Sets the pack to downloaded, with the data being stored in the location at
-     * downloadedData
-     */
-    public void setDownloadedData(File downloadedData);
-
-    /**
      * Installs the pack to a given destination
      * 
      * @throws MissingDependencyException if not all the required dependencies are

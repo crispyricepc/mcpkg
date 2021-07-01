@@ -82,7 +82,10 @@ public abstract class VTPack implements Pack {
         return downloadedData;
     }
 
-    @Override
+    /**
+     * Sets the pack to downloaded, with the data being stored in the location at
+     * downloadedData
+     */
     public void setDownloadedData(File downloadedData) {
         this.downloadedData = downloadedData;
     }
