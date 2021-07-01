@@ -1,19 +1,22 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 import dev.benmitchell.mcpkg.packs.Pack;
 import dev.benmitchell.mcpkg.packs.PackType;
 
 public abstract class VTPack implements Pack {
     private String packId;
-    private boolean downloaded;
     private PackType packType;
     private File downloadedData;
     private String display;
@@ -35,7 +38,7 @@ public abstract class VTPack implements Pack {
 
         packId = "VanillaTweaks." + name;
         this.category = category;
-        downloaded = false;
+        downloadedData = null;
         packType = pType;
     }
 
@@ -66,7 +69,7 @@ public abstract class VTPack implements Pack {
 
     @Override
     public boolean isDownloaded() {
-        return downloaded;
+        return downloadedData == null || !downloadedData.exists();
     }
 
     @Override
@@ -93,8 +96,10 @@ public abstract class VTPack implements Pack {
     }
 
     @Override
-    public void installTo(Path destination) {
-        // TODO Auto-generated method stub
+    public void installTo(Path destination) throws IOException, PackNotDownloadedException {
+        if (!isDownloaded())
+            throw new PackNotDownloadedException(this);
 
+        downloadedData = Files.copy(downloadedData.toPath(), destination, StandardCopyOption.REPLACE_EXISTING).toFile();
     }
 }

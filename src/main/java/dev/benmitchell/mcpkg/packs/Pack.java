@@ -1,10 +1,12 @@
 package dev.benmitchell.mcpkg.packs;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
+import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 
 public interface Pack {
     /**
@@ -60,7 +62,7 @@ public interface Pack {
      * @throws MissingDependencyException if not all the required dependencies are
      *                                    installed
      */
-    public void installTo(Path destination);
+    public void installTo(Path destination) throws IOException, PackNotDownloadedException;
 
     /**
      * Installs the pack to a set destination
@@ -68,5 +70,5 @@ public interface Pack {
      * @throws MissingDependencyException if not all the required dependencies are
      *                                    installed
      */
-    public void install() throws InvalidDirectoryException;
+    public void install() throws IOException, InvalidDirectoryException, PackNotDownloadedException;
 }
