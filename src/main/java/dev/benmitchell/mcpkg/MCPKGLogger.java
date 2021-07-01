@@ -34,12 +34,10 @@ public class MCPKGLogger {
         log(Level.ERROR, thrown.getMessage());
     }
 
-    public static void log(Level level, String msg, Object... params) {
+    public static void log(Level level, String msg) {
         if (!isLoggable(level))
             return;
 
-        System.err.printf("{0} ", LOG_LEVEL_STRINGS.get(level));
-        System.err.printf(msg, params);
-        System.err.println();
+        System.err.println(LOG_LEVEL_STRINGS.get(level) + " " + msg);
     }
 }
