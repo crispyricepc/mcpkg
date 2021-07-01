@@ -7,17 +7,16 @@ import java.nio.file.Paths;
 import org.apache.commons.lang3.SystemUtils;
 
 public class Platform {
-    private static Path getDotMinecraftPath() {
+    private static final Path DOT_MINECRAFT_PATH;
+    static {
         if (SystemUtils.IS_OS_WINDOWS)
-            return Paths.get(System.getenv("USERPROFILE"), ".minecraft");
-        if (SystemUtils.IS_OS_MAC)
-            return Paths.get(System.getenv("HOME"), "Library", "Application Support", "minecraft");
-        if (SystemUtils.IS_OS_LINUX) {
-            return Paths.get(System.getenv("HOME"), ".minecraft");
+            DOT_MINECRAFT_PATH = Paths.get(System.getenv("USERPROFILE"), ".minecraft");
+        else if (SystemUtils.IS_OS_MAC)
+            DOT_MINECRAFT_PATH = Paths.get(System.getenv("HOME"), "Library", "Application Support", "minecraft");
+        else {
+            DOT_MINECRAFT_PATH = Paths.get(System.getenv("HOME"), ".minecraft");
         }
-
-        throw new RuntimeException("Operating system is not supported");
-    }
+    };
 
     public static File getDataPath() {
         Path dataPath;
