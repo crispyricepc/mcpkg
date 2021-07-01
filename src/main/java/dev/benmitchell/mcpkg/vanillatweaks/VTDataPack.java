@@ -1,6 +1,11 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import org.json.simple.JSONObject;
 
@@ -14,13 +19,15 @@ public class VTDataPack extends VTPack {
     }
 
     @Override
-    public void installTo(Path destination) {
-        // TODO Auto-generated method stub
-
+    public void installTo(Path destination) throws IOException {
+        try (FileSystem fs = FileSystems.newFileSystem(downloadedData.toPath(), null)) {
+            for (Path path : fs.getRootDirectories())
+                Files.copy(path, destination.resolve(getPackId() + ".zip"), StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     @Override
-    public void install() throws InvalidDirectoryException {
+    public void install() throws IOException, InvalidDirectoryException {
         installTo(Platform.getDataPacksDir());
 
     }

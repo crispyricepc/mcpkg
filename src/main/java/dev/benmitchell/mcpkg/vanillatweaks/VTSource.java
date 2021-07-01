@@ -8,6 +8,8 @@ import java.io.Reader;
 import java.lang.System.Logger.Level;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -126,6 +128,8 @@ public class VTSource extends PackSource {
 
     @Override
     public List<Pack> downloadPacks(List<Pack> packs) throws IOException {
+        Path tmpDir = Files.createTempDirectory("mcpkg");
+
         for (Pack pack : packs) {
             String typeString = pack.getPackType().toString().toLowerCase();
 
@@ -161,9 +165,13 @@ public class VTSource extends PackSource {
             if (responseJsonObject.get("status").equals("error"))
                 throw new VTRemoteException((String) responseJsonObject.get("message"));
 
+            File downloadedFile = tmpDir.resolve(vtPack.getPackId() + ".zip").toFile();
+
             DownloadManager.downloadToFile(
-                    new URL("https://vanillatweaks.net/" + responseJsonObject.get("link").toString()),
-                    new File("test_dest.zip"), false);
+                    new URL("https://vanillatweaks.net/" + responseJsonObject.get("link").toString()), downloadedFile,
+                    false);
+
+            vtPack.setDownloadedData(downloadedFile);
         }
         return packs;
     }

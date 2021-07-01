@@ -2,6 +2,7 @@ package dev.benmitchell.mcpkg.vanillatweaks;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -11,6 +12,7 @@ import java.util.List;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 import dev.benmitchell.mcpkg.packs.Pack;
 import dev.benmitchell.mcpkg.packs.PackType;
@@ -18,7 +20,7 @@ import dev.benmitchell.mcpkg.packs.PackType;
 public abstract class VTPack implements Pack {
     private String packId;
     private PackType packType;
-    private File downloadedData;
+    protected File downloadedData;
     private String display;
     private String description;
     private List<String> incompatible;
@@ -40,6 +42,16 @@ public abstract class VTPack implements Pack {
         this.category = category;
         downloadedData = null;
         packType = pType;
+    }
+
+    private void deleteDownloadedData() {
+        try {
+            Files.delete(downloadedData.toPath());
+            downloadedData = null;
+        } catch (IOException ex) {
+            MCPKGLogger.log(Level.WARNING,
+                    "Failed to delete downloaded cache for '" + getDisplayName() + "''. Reason: " + ex.getMessage());
+        }
     }
 
     @Override
@@ -69,7 +81,7 @@ public abstract class VTPack implements Pack {
 
     @Override
     public boolean isDownloaded() {
-        return downloadedData == null || !downloadedData.exists();
+        return downloadedData != null && downloadedData.exists();
     }
 
     @Override
@@ -103,6 +115,7 @@ public abstract class VTPack implements Pack {
         if (!isDownloaded())
             throw new PackNotDownloadedException(this);
 
-        downloadedData = Files.copy(downloadedData.toPath(), destination, StandardCopyOption.REPLACE_EXISTING).toFile();
+        downloadedData = Files.copy(downloadedData.toPath(), destination.resolve(getPackId() + ".zip"),
+                StandardCopyOption.REPLACE_EXISTING).toFile();
     }
 }
