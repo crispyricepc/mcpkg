@@ -22,7 +22,6 @@ import org.json.simple.parser.ParseException;
 import dev.benmitchell.mcpkg.DownloadManager;
 import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.Platform;
-import dev.benmitchell.mcpkg.exceptions.InvalidPackTypeException;
 import dev.benmitchell.mcpkg.packs.Pack;
 import dev.benmitchell.mcpkg.packs.PackType;
 import dev.benmitchell.mcpkg.sources.PackSource;
@@ -90,7 +89,7 @@ public class VTSource extends PackSource {
                                     ((JSONObject) category).get("category").toString()));
                             break;
                         default:
-                            throw new InvalidPackTypeException(pType);
+                            throw new RuntimeException("This packtype (" + pType.toString() + ") is not valid");
                     }
                 }
             }
