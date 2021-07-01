@@ -23,7 +23,7 @@ public abstract class VTPack implements Pack {
     private String name;
     private String category;
 
-    public VTPack(JSONObject jObject, PackType pType) {
+    public VTPack(JSONObject jObject, PackType pType, String category) {
         name = (String) jObject.get("name");
         display = (String) jObject.get("display");
         description = (String) jObject.get("description");
@@ -33,6 +33,7 @@ public abstract class VTPack implements Pack {
         }
 
         packId = "VanillaTweaks." + name;
+        this.category = category;
         downloaded = false;
         packType = pType;
     }

@@ -9,8 +9,8 @@ import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 import dev.benmitchell.mcpkg.packs.PackType;
 
 public class VTCraftingPack extends VTPack {
-    public VTCraftingPack(JSONObject jObject) {
-        super(jObject, PackType.CRAFTINGTWEAK);
+    public VTCraftingPack(JSONObject jObject, String category) {
+        super(jObject, PackType.CRAFTINGTWEAK, category);
     }
 
     @Override

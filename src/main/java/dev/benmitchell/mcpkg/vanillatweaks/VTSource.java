@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.System.Logger.Level;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -18,6 +20,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import dev.benmitchell.mcpkg.DownloadManager;
+import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.Platform;
 import dev.benmitchell.mcpkg.exceptions.InvalidPackTypeException;
 import dev.benmitchell.mcpkg.packs.Pack;
@@ -25,6 +28,12 @@ import dev.benmitchell.mcpkg.packs.PackType;
 import dev.benmitchell.mcpkg.sources.PackSource;
 
 public class VTSource extends PackSource {
+    public class VTRemoteException extends RuntimeException {
+        public VTRemoteException(String errorMessage) {
+            super("vanillatweaks.net returned the following error: " + errorMessage);
+        }
+    }
+
     private static final Map<String, PackType> TYPE_INITIAL_MAP;
     static {
         TYPE_INITIAL_MAP = new HashMap<String, PackType>();
@@ -36,7 +45,7 @@ public class VTSource extends PackSource {
     /**
      * Gets metadata about the packs from either a cache file or from the internet
      */
-    private List<Pack> getPackCache() {
+    private List<Pack> getPackCache() throws IOException {
         List<Pack> packs = new ArrayList<Pack>();
 
         // Download the pack cache if it doesn't exist, or the date last modified on the
@@ -59,8 +68,6 @@ public class VTSource extends PackSource {
             JSONObject jObject;
             try (Reader reader = new BufferedReader(new FileReader(packCacheFile))) {
                 jObject = (JSONObject) jParser.parse(reader);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
             } catch (ParseException ex) {
                 throw new RuntimeException(ex);
             }
@@ -71,13 +78,16 @@ public class VTSource extends PackSource {
                     PackType pType = TYPE_INITIAL_MAP.get(typeInitials);
                     switch (pType) {
                         case CRAFTINGTWEAK:
-                            packs.add(new VTCraftingPack((JSONObject) pack));
+                            packs.add(new VTCraftingPack((JSONObject) pack,
+                                    ((JSONObject) category).get("category").toString()));
                             break;
                         case DATAPACK:
-                            packs.add(new VTDataPack((JSONObject) pack));
+                            packs.add(new VTDataPack((JSONObject) pack,
+                                    ((JSONObject) category).get("category").toString()));
                             break;
                         case RESOURCEPACK:
-                            packs.add(new VTResourcePack((JSONObject) pack));
+                            packs.add(new VTResourcePack((JSONObject) pack,
+                                    ((JSONObject) category).get("category").toString()));
                             break;
                         default:
                             throw new InvalidPackTypeException(pType);
@@ -90,7 +100,7 @@ public class VTSource extends PackSource {
     }
 
     @Override
-    public List<Pack> getPacks(List<String> packIds) {
+    public List<Pack> getPacks(List<String> packIds) throws IOException {
         List<Pack> packsToReturn = new ArrayList<Pack>();
         for (Pack pack : getPackCache()) {
             if (packIds.contains(pack.getPackId()))
@@ -100,7 +110,7 @@ public class VTSource extends PackSource {
     }
 
     @Override
-    public List<Pack> searchForPacks(List<String> keywords) {
+    public List<Pack> searchForPacks(List<String> keywords) throws IOException {
         List<Pack> packsToReturn = new ArrayList<Pack>();
 
         for (Pack pack : getPackCache()) {
@@ -116,7 +126,7 @@ public class VTSource extends PackSource {
     }
 
     @Override
-    public List<Pack> downloadPacks(List<Pack> packs) {
+    public List<Pack> downloadPacks(List<Pack> packs) throws IOException {
         for (Pack pack : packs) {
             String typeString = pack.getPackType().toString().toLowerCase();
 
@@ -132,18 +142,30 @@ public class VTSource extends PackSource {
             Map<String, String> postMap = new HashMap<String, String>();
             postMap.put("version", "1.17");
             postMap.put("packs", jObject.toJSONString());
+            URL requestUrl = new URL("https://vanillatweaks.net/assets/server/zip" + typeString + "s.php");
+            String response;
             try {
-                URL requestUrl = new URL("https://vanillatweaks.net/assets/server/zip" + typeString + "s.php");
-                String response = DownloadManager.postRequest(requestUrl, postMap);
-                JSONParser jParser = new JSONParser();
-                JSONObject responseJsonObject = (JSONObject) jParser.parse(response);
-                DownloadManager.downloadToFile(
-                        new URL("https://vanillatweaks.net/" + responseJsonObject.get("link").toString()),
-                        new File("test_dest.zip"), false);
-            } catch (Exception ex) {
+                response = DownloadManager.postRequest(requestUrl, postMap);
+            } catch (URISyntaxException ex) {
+                MCPKGLogger.log(Level.ERROR, "Request URL: '" + requestUrl + "' is invalid");
                 throw new RuntimeException(ex);
             }
+            JSONParser jParser = new JSONParser();
+            JSONObject responseJsonObject;
+            try {
+                responseJsonObject = (JSONObject) jParser.parse(response);
+            } catch (ParseException ex) {
+                MCPKGLogger.log(Level.ERROR, "A syntax error has occured");
+                throw new RuntimeException(ex);
+            }
+
+            if (responseJsonObject.get("status").equals("error"))
+                throw new VTRemoteException((String) responseJsonObject.get("message"));
+
+            DownloadManager.downloadToFile(
+                    new URL("https://vanillatweaks.net/" + responseJsonObject.get("link").toString()),
+                    new File("test_dest.zip"), false);
         }
-        return null;
+        return packs;
     }
 }
