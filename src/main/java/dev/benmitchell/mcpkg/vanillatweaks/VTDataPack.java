@@ -1,9 +1,11 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.zip.ZipEntry;
@@ -13,6 +15,7 @@ import org.json.simple.JSONObject;
 
 import dev.benmitchell.mcpkg.Platform;
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
+import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 import dev.benmitchell.mcpkg.packs.PackType;
 
 public class VTDataPack extends VTPack {
@@ -21,18 +24,25 @@ public class VTDataPack extends VTPack {
     }
 
     @Override
-    public void installTo(Path destination) throws IOException {
+    public void installTo(Path destination) throws IOException, PackNotDownloadedException {
+        if (!isDownloaded())
+            throw new PackNotDownloadedException(this);
+
+        File newZipLoc = Files.createTempFile("mcpkg", ".zip").toFile();
+
         try (ZipFile zf = new ZipFile(downloadedData)) {
             for (ZipEntry entry : Collections.list(zf.entries()))
-                try (InputStream zis = zf.getInputStream(entry);
-                        OutputStream zos = new FileOutputStream(destination.resolve(getPackId() + ".zip").toFile())) {
+                try (InputStream zis = zf.getInputStream(entry); OutputStream zos = new FileOutputStream(newZipLoc)) {
                     zis.transferTo(zos);
                 }
         }
+
+        setDownloadedData(newZipLoc);
+        super.installTo(destination);
     }
 
     @Override
-    public void install() throws IOException, InvalidDirectoryException {
+    public void install() throws IOException, InvalidDirectoryException, PackNotDownloadedException {
         installTo(Platform.getDataPacksDir());
     }
 }
