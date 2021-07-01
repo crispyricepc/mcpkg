@@ -43,10 +43,8 @@ public class VTSource extends PackSource {
         TYPE_INITIAL_MAP.put("ct", PackType.CRAFTINGTWEAK);
     }
 
-    /**
-     * Gets metadata about the packs from either a cache file or from the internet
-     */
-    private List<Pack> getPackCache() throws IOException {
+    @Override
+    public List<Pack> getPacks() throws IOException {
         List<Pack> packs = new ArrayList<Pack>();
 
         // Download the pack cache if it doesn't exist, or the date last modified on the
@@ -103,26 +101,10 @@ public class VTSource extends PackSource {
     @Override
     public List<Pack> getPacks(List<String> packIds) throws IOException {
         List<Pack> packsToReturn = new ArrayList<Pack>();
-        for (Pack pack : getPackCache()) {
+        for (Pack pack : getPacks()) {
             if (packIds.contains(pack.getPackId()))
                 packsToReturn.add(pack);
         }
-        return packsToReturn;
-    }
-
-    @Override
-    public List<Pack> searchForPacks(List<String> keywords) throws IOException {
-        List<Pack> packsToReturn = new ArrayList<Pack>();
-
-        for (Pack pack : getPackCache()) {
-            for (String keyword : keywords) {
-                if (pack.getPackId().toLowerCase().contains(keyword.toLowerCase())
-                        || pack.getDisplayName().toLowerCase().contains(keyword.toLowerCase())) {
-                    packsToReturn.add(pack);
-                }
-            }
-        }
-
         return packsToReturn;
     }
 
