@@ -9,6 +9,33 @@ import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 
 public interface Pack {
+    public class Version {
+        public int major;
+        public int minor;
+        public int revision;
+
+        public Version(String str) {
+            if (str == null) {
+                major = 0;
+                minor = 0;
+                revision = 0;
+                return;
+            }
+
+            String[] versions = str.split("\\.");
+            major = Integer.parseInt(versions[0]);
+            minor = Integer.parseInt(versions[1]);
+            revision = Integer.parseInt(versions[2]);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append(major).append(".").append(minor).append(".").append(revision);
+            return builder.toString();
+        }
+    }
+
     /**
      * @return The unique ID of the pack
      */
@@ -23,6 +50,11 @@ public interface Pack {
      * @return A short description of the pack
      */
     public String getDescription();
+
+    /**
+     * @return The version of the pack
+     */
+    public Version getVersion();
 
     /**
      * @return A list of pack IDs that this pack requires to be installed

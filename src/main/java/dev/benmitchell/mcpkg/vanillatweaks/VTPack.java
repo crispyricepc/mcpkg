@@ -23,6 +23,7 @@ public abstract class VTPack implements Pack {
     protected File downloadedData;
     private String display;
     private String description;
+    private Version version;
     private List<String> incompatible;
 
     // Vanilla tweaks remote data
@@ -33,6 +34,7 @@ public abstract class VTPack implements Pack {
         name = (String) jObject.get("name");
         display = (String) jObject.get("display");
         description = (String) jObject.get("description");
+        version = new Version((String) jObject.get("version"));
         incompatible = new ArrayList<String>();
         for (Object item : (JSONArray) jObject.get("incompatible")) {
             incompatible.add((String) item);
@@ -67,6 +69,11 @@ public abstract class VTPack implements Pack {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public Version getVersion() {
+        return version;
     }
 
     @Override
