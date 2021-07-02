@@ -121,7 +121,19 @@ public class CommandLine {
      * @param installed Whether to limit the search to only installed packs
      */
     public static int search(List<String> keywords, boolean installed) {
-        // TODO: Not implemented
+        PackSource source;
+        if (installed)
+            source = new LocalSource();
+        else
+            source = new VTSource();
+
+        try {
+            int consoleWidth = TerminalBuilder.terminal().getWidth();
+            for (Pack pack : source.searchForPacks(keywords))
+                System.out.println(printPackShort(pack, consoleWidth));
+        } catch (IOException ex) {
+            MCPKGLogger.err(ex);
+        }
         return 1;
     }
 
