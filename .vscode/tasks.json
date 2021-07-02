@@ -6,7 +6,7 @@
         {
             "label": "compile",
             "type": "shell",
-            "command": "mvn -B compile",
+            "command": "mvn -B compile assembly:single",
             "group": {
                 "kind": "build",
                 "isDefault": true

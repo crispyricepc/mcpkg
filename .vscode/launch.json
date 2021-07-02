@@ -16,7 +16,8 @@
             "request": "launch",
             "mainClass": "dev.benmitchell.mcpkg.Main",
             "projectName": "mcpkg",
-            "cwd": "${env:HOME}/.minecraft/saves/New World"
+            "cwd": "${env:HOME}/.minecraft/saves/New World",
+            "preLaunchTask": "compile"
         }
     ]
 }
