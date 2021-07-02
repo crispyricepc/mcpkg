@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.NotImplementedException;
 
+import dev.benmitchell.mcpkg.Platform;
+
 public abstract class LocalPack extends Pack {
     /**
      * Creates a new pack object based on a given file
@@ -14,7 +16,7 @@ public abstract class LocalPack extends Pack {
      * @param packType The type of pack
      * @return A LocalPack that's either a DataPack or a ResourcePack
      */
-    public static LocalPack fromFile(File file, PackType packType) {
+    public static LocalPack fromFile(File file) {
         String[] details = file.getName().split("\\.");
         Version version;
         if (details.length == 6)
@@ -23,15 +25,12 @@ public abstract class LocalPack extends Pack {
                     Integer.parseInt(details[4]));
         else
             version = new Version();
-        switch (packType) {
-            case DATAPACK:
-            case CRAFTINGTWEAK:
-                return new LocalDataPack(details[0] + "." + details[1], version, file);
-            case RESOURCEPACK:
-                return new LocalResourcePack(details[0] + "." + details[1], version, file);
-            default:
-                throw new NotImplementedException();
-        }
+        if (Platform.isADataPacksDir(file.getParentFile().toPath()))
+            return new LocalDataPack(details[0] + "." + details[1], version, file);
+        if (Platform.getResourcePacksDir().equals(file.getParentFile().toPath()))
+            return new LocalResourcePack(details[0] + "." + details[1], version, file);
+
+        throw new NotImplementedException("Couldn't determine the type of pack '" + file + "'");
     }
 
     public LocalPack(String packId, Version version, File downloadedData, PackType packType) {

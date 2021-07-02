@@ -47,14 +47,18 @@ public class Platform {
         return DOT_MINECRAFT_PATH.resolve("resourcepacks");
     }
 
+    public static boolean isADataPacksDir(Path directory) {
+        return directory // .minecraft/saves/some_save_folder/datapacks
+                .getParent() // .minecraft/saves/some_save_folder
+                .getParent() // .minecraft/saves
+                .equals(DOT_MINECRAFT_PATH.resolve("saves")) && directory.getFileName().equals(Paths.get("datapacks"));
+    }
+
     public static Path getDataPacksDir() throws InvalidDirectoryException {
         Path cwd = Paths.get(SystemUtils.USER_DIR);
 
         // If we're in a datapacks directory inside .minecraft
-        if (cwd // .minecraft/saves/some_save_folder/datapacks
-                .getParent() // .minecraft/saves/some_save_folder
-                .getParent() // .minecraft/saves
-                .equals(DOT_MINECRAFT_PATH.resolve("saves")) && cwd.getName(-1).equals(Paths.get("datapacks")))
+        if (isADataPacksDir(cwd))
             return cwd;
         // If we're in a worlds directory inside .minecraft
         if (cwd // .minecraft/saves/some_save_folder
