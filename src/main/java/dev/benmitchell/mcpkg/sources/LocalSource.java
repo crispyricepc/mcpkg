@@ -6,29 +6,29 @@ import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
+
 import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.Platform;
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
+import dev.benmitchell.mcpkg.packs.LocalPack;
 import dev.benmitchell.mcpkg.packs.Pack;
+import dev.benmitchell.mcpkg.packs.PackType;
 
 public class LocalSource extends PackSource {
-
     @Override
     public List<Pack> getPacks() throws IOException {
-        List<Pack> dataPacks = new ArrayList<Pack>();
+        List<Pack> packs = new ArrayList<Pack>();
         try {
             for (File file : Platform.getDataPacksDir().toFile().listFiles()) {
-
+                // Ignore any non .zip files
+                if (!FilenameUtils.getExtension(file.getName()).equals("zip"))
+                    continue;
+                packs.add(LocalPack.fromFile(file, PackType.DATAPACK));
             }
         } catch (InvalidDirectoryException ex) {
             MCPKGLogger.log(Level.WARNING, ex.getMessage());
         }
-        return null;
-    }
-
-    @Override
-    public List<Pack> getPacks(List<String> packIds) throws IOException {
-        // TODO Auto-generated method stub
         return null;
     }
 }
