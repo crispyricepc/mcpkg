@@ -122,8 +122,9 @@ public abstract class VTPack implements Pack {
         if (!isDownloaded())
             throw new PackNotDownloadedException(this);
 
-        downloadedData = Files.move(downloadedData.toPath(), destination.resolve(getPackId() + ".zip"),
-                StandardCopyOption.REPLACE_EXISTING).toFile();
+        downloadedData = Files.move(downloadedData.toPath(),
+                destination.resolve(getPackId() + "." + getVersion() + ".zip"), StandardCopyOption.REPLACE_EXISTING)
+                .toFile();
     }
 
     @Override
