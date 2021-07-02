@@ -9,10 +9,14 @@ import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 
 public interface Pack {
-    public class Version {
+    public class Version implements Comparable<Version> {
         public int major;
         public int minor;
         public int revision;
+
+        public Version() {
+            this("0.0.0");
+        }
 
         public Version(String str) {
             if (str == null) {
@@ -36,6 +40,36 @@ public interface Pack {
             StringBuilder builder = new StringBuilder();
             builder.append(major).append(".").append(minor).append(".").append(revision);
             return builder.toString();
+        }
+
+        @Override
+        public int compareTo(Version o) {
+            if (major < o.major)
+                return -1;
+            if (major > o.major)
+                return 1;
+            // Majors are the same
+            if (minor < o.minor)
+                return -1;
+            if (minor > o.minor)
+                return 1;
+            // Minors are the same
+            if (revision < o.revision)
+                return -1;
+            if (revision > o.revision)
+                return 1;
+            // Versions are the same
+            return 0;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this)
+                return true;
+            if (!(o instanceof Version))
+                return false;
+
+            return compareTo((Version) o) == 0;
         }
     }
 

@@ -123,7 +123,7 @@ public abstract class VTPack implements Pack {
             throw new PackNotDownloadedException(this);
 
         Path destFile;
-        if (getVersion().toString().equals(""))
+        if (getVersion().equals(new Version()))
             destFile = destination.resolve(getPackId() + ".zip");
         else {
             destFile = destination.resolve(getPackId() + "." + getVersion() + ".zip");
