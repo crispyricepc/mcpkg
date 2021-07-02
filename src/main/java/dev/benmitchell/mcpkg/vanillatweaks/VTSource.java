@@ -26,9 +26,9 @@ import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.Platform;
 import dev.benmitchell.mcpkg.packs.Pack;
 import dev.benmitchell.mcpkg.packs.PackType;
-import dev.benmitchell.mcpkg.sources.PackSource;
+import dev.benmitchell.mcpkg.sources.RemoteSource;
 
-public class VTSource extends PackSource {
+public class VTSource extends RemoteSource {
     public class VTRemoteException extends RuntimeException {
         public VTRemoteException(String errorMessage) {
             super("vanillatweaks.net returned the following error: " + errorMessage);

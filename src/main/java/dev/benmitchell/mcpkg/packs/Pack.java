@@ -2,14 +2,17 @@ package dev.benmitchell.mcpkg.packs;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 
-public interface Pack {
-    public class Version implements Comparable<Version> {
+public abstract class Pack {
+    public static class Version implements Comparable<Version> {
         public int major;
         public int minor;
         public int revision;
@@ -73,72 +76,128 @@ public interface Pack {
         }
     }
 
+    protected String packId;
+    protected String displayName;
+    protected String description;
+    protected Version version;
+    protected List<String> dependencies;
+    protected List<String> incompatibilities;
+    protected PackType packType;
+    protected Optional<File> downloadedData;
+
+    public Pack(String packId, String displayName, String description, Version version, List<String> dependencies,
+            List<String> incompatibilities, PackType packType, Optional<File> downloadedData) {
+        this.packId = packId;
+        this.displayName = displayName;
+        this.description = description;
+        this.version = version;
+        this.dependencies = dependencies;
+        this.incompatibilities = incompatibilities;
+        this.packType = packType;
+        this.downloadedData = downloadedData;
+    }
+
     /**
      * @return The unique ID of the pack
      */
-    public String getPackId();
+    public String getPackId() {
+        return packId;
+    }
 
     /**
      * @return A human readable name for the pack
      */
-    public String getDisplayName();
+    public String getDisplayName() {
+        return displayName;
+    }
 
     /**
      * @return A short description of the pack
      */
-    public String getDescription();
+    public String getDescription() {
+        return description;
+    }
 
     /**
      * @return The version of the pack
      */
-    public Version getVersion();
+    public Version getVersion() {
+        return version;
+    }
 
     /**
      * @return A list of pack IDs that this pack requires to be installed
      */
-    public List<String> getDependencies();
+    public List<String> getDependencies() {
+        return dependencies;
+    }
 
     /**
      * @return A list of pack IDs that this pack is incompatible with
      */
-    public List<String> getIncompatibilities();
-
-    /**
-     * @return true if the pack data is stored
-     */
-    public boolean isDownloaded();
+    public List<String> getIncompatibilities() {
+        return incompatibilities;
+    }
 
     /**
      * @return The type (mod, datapack, resource pack etc.) that this package
      *         represents
      */
-    public PackType getPackType();
+    public PackType getPackType() {
+        return packType;
+    }
+
+    /**
+     * @return true if the pack data is stored
+     */
+    public boolean isDownloaded() {
+        return downloadedData.isPresent() && downloadedData.get().exists();
+    }
 
     /**
      * @return The data on disk that's been downloaded
      */
-    public File getDownloadedData();
+    public File getDownloadedData() throws PackNotDownloadedException {
+        if (!isDownloaded())
+            throw new PackNotDownloadedException(this);
+        return downloadedData.get();
+    }
+
+    /**
+     * Sets the pack to downloaded, with the data being stored in the location at
+     * downloadedData
+     */
+    public void setDownloadedData(File downloadedData) {
+        this.downloadedData = Optional.of(downloadedData);
+    }
 
     /**
      * Installs the pack to a given destination
-     * 
-     * @throws MissingDependencyException if not all the required dependencies are
-     *                                    installed
      */
-    public void installTo(Path destination) throws IOException, PackNotDownloadedException;
+    public void installTo(Path destination) throws IOException, PackNotDownloadedException {
+        Path destFile;
+        if (getVersion().equals(new Version()))
+            destFile = destination.resolve(getPackId() + ".zip");
+        else {
+            destFile = destination.resolve(getPackId() + "." + getVersion() + ".zip");
+        }
+
+        setDownloadedData(
+                Files.move(getDownloadedData().toPath(), destFile, StandardCopyOption.REPLACE_EXISTING).toFile());
+    }
 
     /**
      * Installs the pack to a set destination
-     * 
-     * @throws MissingDependencyException if not all the required dependencies are
-     *                                    installed
      */
-    public void install() throws IOException, InvalidDirectoryException, PackNotDownloadedException;
+    public abstract void install() throws IOException, InvalidDirectoryException, PackNotDownloadedException;
 
     /**
      * Removes the pack from its installed location
      * 
      * @throws PackNotDownloadedException if the pack hasn't been downloaded
      */
-    public void uninstall() throws IOException, PackNotDownloadedException;
+    public void uninstall() throws IOException, PackNotDownloadedException {
+        Files.delete(getDownloadedData().toPath());
+        downloadedData = Optional.empty();
+    }
 }

@@ -25,12 +25,9 @@ public class VTDataPack extends VTPack {
 
     @Override
     public void installTo(Path destination) throws IOException, PackNotDownloadedException {
-        if (!isDownloaded())
-            throw new PackNotDownloadedException(this);
-
         File newZipLoc = Files.createTempFile("mcpkg", ".zip").toFile();
 
-        try (ZipFile zf = new ZipFile(downloadedData)) {
+        try (ZipFile zf = new ZipFile(getDownloadedData())) {
             for (ZipEntry entry : Collections.list(zf.entries()))
                 try (InputStream zis = zf.getInputStream(entry); OutputStream zos = new FileOutputStream(newZipLoc)) {
                     zis.transferTo(zos);

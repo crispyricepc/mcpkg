@@ -38,21 +38,4 @@ public abstract class PackSource {
 
         return packsToReturn;
     }
-
-    /**
-     * Downloads the given packs to memory, storing the results in the pack objects
-     * 
-     * @return The list of packs (this should be unchanged)
-     */
-    public abstract List<Pack> downloadPacks(List<Pack> packs) throws IOException;
-
-    /**
-     * Downloads the given packs to memory, storing the results in the pack objects
-     * 
-     * @see #downloadPacks(List)
-     * @return The packs with their data downloaded
-     */
-    public List<Pack> downloadPacksFromIds(List<String> packIds) throws IOException {
-        return downloadPacks(getPacks(packIds));
-    }
 }

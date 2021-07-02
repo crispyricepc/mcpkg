@@ -6,13 +6,13 @@ import java.util.List;
 
 import dev.benmitchell.mcpkg.exceptions.MCPKGException;
 import dev.benmitchell.mcpkg.packs.Pack;
-import dev.benmitchell.mcpkg.sources.PackSource;
+import dev.benmitchell.mcpkg.sources.RemoteSource;
 import dev.benmitchell.mcpkg.vanillatweaks.VTSource;
 
 public class Main {
     public static void main(String[] args) {
         try {
-            PackSource src = new VTSource();
+            RemoteSource src = new VTSource();
             List<String> packsToGet = new ArrayList<String>();
             packsToGet.add("back");
             List<Pack> packs = src.searchForPacks(packsToGet);

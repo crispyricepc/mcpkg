@@ -1,112 +1,29 @@
 package dev.benmitchell.mcpkg.vanillatweaks;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.System.Logger.Level;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import dev.benmitchell.mcpkg.MCPKGLogger;
-import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 import dev.benmitchell.mcpkg.packs.Pack;
 import dev.benmitchell.mcpkg.packs.PackType;
 
-public abstract class VTPack implements Pack {
-    private String packId;
-    private PackType packType;
-    protected File downloadedData;
-    private String display;
-    private String description;
-    private Version version;
-    private List<String> incompatible;
-
+public abstract class VTPack extends Pack {
     // Vanilla tweaks remote data
     private String name;
     private String category;
 
     public VTPack(JSONObject jObject, PackType pType, String category) {
+        super("VanillaTweaks." + (String) jObject.get("name"), (String) jObject.get("display"),
+                (String) jObject.get("description"), new Version((String) jObject.get("version")),
+                new ArrayList<String>(), new ArrayList<String>(), pType, Optional.empty());
         name = (String) jObject.get("name");
-        display = (String) jObject.get("display");
-        description = (String) jObject.get("description");
-        version = new Version((String) jObject.get("version"));
-        incompatible = new ArrayList<String>();
         for (Object item : (JSONArray) jObject.get("incompatible")) {
-            incompatible.add((String) item);
+            incompatibilities.add((String) item);
         }
 
-        packId = "VanillaTweaks." + name;
         this.category = category;
-        downloadedData = null;
-        packType = pType;
-    }
-
-    public void deleteDownloadedData() {
-        try {
-            Files.delete(downloadedData.toPath());
-            downloadedData = null;
-        } catch (IOException ex) {
-            MCPKGLogger.log(Level.WARNING,
-                    "Failed to delete downloaded cache for '" + getDisplayName() + "''. Reason: " + ex.getMessage());
-        }
-    }
-
-    @Override
-    public String getPackId() {
-        return packId;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return display;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public Version getVersion() {
-        return version;
-    }
-
-    @Override
-    public List<String> getDependencies() {
-        return new ArrayList<String>(0);
-    }
-
-    @Override
-    public List<String> getIncompatibilities() {
-        return incompatible;
-    }
-
-    @Override
-    public boolean isDownloaded() {
-        return downloadedData != null && downloadedData.exists();
-    }
-
-    @Override
-    public PackType getPackType() {
-        return packType;
-    }
-
-    @Override
-    public File getDownloadedData() {
-        return downloadedData;
-    }
-
-    /**
-     * Sets the pack to downloaded, with the data being stored in the location at
-     * downloadedData
-     */
-    public void setDownloadedData(File downloadedData) {
-        this.downloadedData = downloadedData;
     }
 
     public String getName() {
@@ -115,30 +32,5 @@ public abstract class VTPack implements Pack {
 
     public String getCategory() {
         return category;
-    }
-
-    @Override
-    public void installTo(Path destination) throws IOException, PackNotDownloadedException {
-        if (!isDownloaded())
-            throw new PackNotDownloadedException(this);
-
-        Path destFile;
-        if (getVersion().equals(new Version()))
-            destFile = destination.resolve(getPackId() + ".zip");
-        else {
-            destFile = destination.resolve(getPackId() + "." + getVersion() + ".zip");
-        }
-
-        downloadedData = Files.move(downloadedData.toPath(), destFile, StandardCopyOption.REPLACE_EXISTING).toFile();
-    }
-
-    @Override
-    public void uninstall() throws IOException, PackNotDownloadedException {
-        if (!isDownloaded())
-            throw new PackNotDownloadedException(this);
-
-        Files.delete(downloadedData.toPath());
-
-        downloadedData = null;
     }
 }
