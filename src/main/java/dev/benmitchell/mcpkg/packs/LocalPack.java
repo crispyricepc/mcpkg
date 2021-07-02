@@ -17,9 +17,10 @@ public abstract class LocalPack extends Pack {
     public static LocalPack fromFile(File file, PackType packType) {
         String[] details = file.getName().split("\\.");
         Version version;
-        if (details.length == 4)
+        if (details.length == 6)
             // If version is in the pack name
-            version = new Version(details[2]);
+            version = new Version(Integer.parseInt(details[2]), Integer.parseInt(details[3]),
+                    Integer.parseInt(details[4]));
         else
             version = new Version();
         switch (packType) {

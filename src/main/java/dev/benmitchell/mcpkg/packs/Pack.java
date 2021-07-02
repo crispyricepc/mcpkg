@@ -35,6 +35,12 @@ public abstract class Pack {
             revision = Integer.parseInt(versions[2]);
         }
 
+        public Version(int major, int minor, int revision) {
+            this.major = major;
+            this.minor = minor;
+            this.revision = revision;
+        }
+
         @Override
         public String toString() {
             if (major == 0 && minor == 0 && revision == 0)
@@ -175,13 +181,7 @@ public abstract class Pack {
      * Installs the pack to a given destination
      */
     public void installTo(Path destination) throws IOException, PackNotDownloadedException {
-        Path destFile;
-        if (getVersion().equals(new Version()))
-            destFile = destination.resolve(getPackId() + ".zip");
-        else {
-            destFile = destination.resolve(getPackId() + "." + getVersion() + ".zip");
-        }
-
+        Path destFile = destination.resolve(toString() + ".zip");
         setDownloadedData(
                 Files.move(getDownloadedData().toPath(), destFile, StandardCopyOption.REPLACE_EXISTING).toFile());
     }
@@ -199,5 +199,13 @@ public abstract class Pack {
     public void uninstall() throws IOException, PackNotDownloadedException {
         Files.delete(getDownloadedData().toPath());
         downloadedData = Optional.empty();
+    }
+
+    @Override
+    public String toString() {
+        if (getVersion().equals(new Version()))
+            return getPackId();
+        return getPackId() + "." + getVersion();
+
     }
 }
