@@ -137,7 +137,7 @@ public class VTSource extends RemoteSource {
             if (responseJsonObject.get("status").equals("error"))
                 throw new VTRemoteException((String) responseJsonObject.get("message"));
 
-            File downloadedFile = tmpDir.resolve(vtPack.getPackId() + ".zip").toFile();
+            File downloadedFile = tmpDir.resolve(vtPack + ".zip").toFile();
 
             DownloadManager.downloadToFile(
                     new URL("https://vanillatweaks.net/" + responseJsonObject.get("link").toString()), downloadedFile,
