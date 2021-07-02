@@ -30,6 +30,9 @@ public interface Pack {
 
         @Override
         public String toString() {
+            if (major == 0 && minor == 0 && revision == 0)
+                return "";
+
             StringBuilder builder = new StringBuilder();
             builder.append(major).append(".").append(minor).append(".").append(revision);
             return builder.toString();
