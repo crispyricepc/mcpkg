@@ -29,6 +29,6 @@ public class LocalSource extends PackSource {
         } catch (InvalidDirectoryException ex) {
             MCPKGLogger.log(Level.WARNING, ex.getMessage());
         }
-        return null;
+        return packs;
     }
 }
