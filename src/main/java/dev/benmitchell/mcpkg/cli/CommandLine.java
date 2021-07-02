@@ -6,6 +6,8 @@ import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 
+import org.jline.terminal.TerminalBuilder;
+
 import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.packs.Pack;
 import dev.benmitchell.mcpkg.packs.Pack.Version;
@@ -18,18 +20,42 @@ import dev.benmitchell.mcpkg.vanillatweaks.VTSource;
  * representing the return status of the program. One function call per command
  */
 public class CommandLine {
-    private static String printPackShort(Pack pack) {
+    private static int addColourString(StringBuilder builder, String strToColour, Color colour) {
+        String colourString = Ansi.ansi().fg(colour).a(strToColour).reset().toString();
+        builder.append(colourString);
+        return strToColour.length();
+    }
+
+    private static String printPackShort(Pack pack, int maxWidth) {
+        int count = 0;
         StringBuilder builder = new StringBuilder();
-        builder.append(Ansi.ansi().fg(Color.BLUE).a(pack.getDisplayName()).reset());
+        count += addColourString(builder, pack.getDisplayName(), Color.BLUE);
         builder.append(" (");
-        builder.append(Ansi.ansi().fg(Color.GREEN).a(pack.getPackId()).reset());
+        count += " (".length();
+        count += addColourString(builder, pack.getPackId(), Color.GREEN);
+
         if (!pack.getVersion().equals(new Version())) {
             builder.append(" v.");
-            builder.append(Ansi.ansi().fg(Color.YELLOW).a(pack.getVersion()).reset());
+            count += " v.".length();
+            count += addColourString(builder, pack.getVersion().toString(), Color.YELLOW);
         }
         builder.append(") ");
+        count += ") ".length();
 
-        builder.append(Ansi.ansi().fgBrightBlack().a(pack.getDescription()).reset());
+        count += pack.getDescription().length();
+
+        if (count >= maxWidth) {
+            try {
+                builder.append(
+                        pack.getDescription().substring(0, pack.getDescription().length() - (count - maxWidth) - 3));
+                builder.append("...");
+            } catch (StringIndexOutOfBoundsException ex) {
+                // Do nothing, we just want to catch the exception
+                MCPKGLogger.err(ex);
+            }
+        } else {
+            builder.append(pack.getDescription());
+        }
         return builder.toString();
     }
 
@@ -78,8 +104,10 @@ public class CommandLine {
             source = new VTSource();
 
         try {
-            for (Pack pack : source.getPacks())
-                System.out.println(printPackShort(pack));
+            int consoleWidth = TerminalBuilder.terminal().getWidth();
+            for (Pack pack : source.getPacks()) {
+                System.out.println(printPackShort(pack, consoleWidth));
+            }
         } catch (IOException ex) {
             MCPKGLogger.err(ex);
         }
