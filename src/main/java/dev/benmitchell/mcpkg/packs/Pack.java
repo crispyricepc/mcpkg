@@ -65,4 +65,11 @@ public interface Pack {
      *                                    installed
      */
     public void install() throws IOException, InvalidDirectoryException, PackNotDownloadedException;
+
+    /**
+     * Removes the pack from its installed location
+     * 
+     * @throws PackNotDownloadedException if the pack hasn't been downloaded
+     */
+    public void uninstall() throws IOException, PackNotDownloadedException;
 }

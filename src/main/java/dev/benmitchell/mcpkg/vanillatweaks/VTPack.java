@@ -118,4 +118,14 @@ public abstract class VTPack implements Pack {
         downloadedData = Files.move(downloadedData.toPath(), destination.resolve(getPackId() + ".zip"),
                 StandardCopyOption.REPLACE_EXISTING).toFile();
     }
+
+    @Override
+    public void uninstall() throws IOException, PackNotDownloadedException {
+        if (!isDownloaded())
+            throw new PackNotDownloadedException(this);
+
+        Files.delete(downloadedData.toPath());
+
+        downloadedData = null;
+    }
 }
