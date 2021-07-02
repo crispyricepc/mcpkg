@@ -15,7 +15,14 @@ public abstract class PackSource {
     /**
      * Gets a list of one or many packs based on the given pack IDs
      */
-    public abstract List<Pack> getPacks(List<String> packIds) throws IOException;
+    public List<Pack> getPacks(List<String> packIds) throws IOException {
+        List<Pack> packsToReturn = new ArrayList<Pack>();
+        for (Pack pack : getPacks()) {
+            if (packIds.contains(pack.getPackId()))
+                packsToReturn.add(pack);
+        }
+        return packsToReturn;
+    }
 
     /**
      * Searches for packs within the source

@@ -99,16 +99,6 @@ public class VTSource extends RemoteSource {
     }
 
     @Override
-    public List<Pack> getPacks(List<String> packIds) throws IOException {
-        List<Pack> packsToReturn = new ArrayList<Pack>();
-        for (Pack pack : getPacks()) {
-            if (packIds.contains(pack.getPackId()))
-                packsToReturn.add(pack);
-        }
-        return packsToReturn;
-    }
-
-    @Override
     public List<Pack> downloadPacks(List<Pack> packs) throws IOException {
         Path tmpDir = Files.createTempDirectory("mcpkg");
 
