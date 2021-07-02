@@ -1,9 +1,12 @@
 package dev.benmitchell.mcpkg.sources;
 
 import java.io.IOException;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.benmitchell.mcpkg.MCPKGLogger;
+import dev.benmitchell.mcpkg.exceptions.PackNotFoundException;
 import dev.benmitchell.mcpkg.packs.Pack;
 
 public abstract class PackSource {
@@ -17,11 +20,22 @@ public abstract class PackSource {
      */
     public List<Pack> getPacks(List<String> packIds) throws IOException {
         List<Pack> packsToReturn = new ArrayList<Pack>();
-        for (Pack pack : getPacks()) {
-            if (packIds.contains(pack.getPackId()))
-                packsToReturn.add(pack);
+        for (String id : packIds) {
+            try {
+                packsToReturn.add(getPack(id));
+            } catch (PackNotFoundException ex) {
+                MCPKGLogger.log(Level.WARNING, ex.getMessage() + ". Skipping...");
+            }
         }
         return packsToReturn;
+    }
+
+    public Pack getPack(String packId) throws IOException, PackNotFoundException {
+        for (Pack pack : getPacks()) {
+            if (pack.getPackId().equals(packId))
+                return pack;
+        }
+        throw new PackNotFoundException(packId);
     }
 
     /**
