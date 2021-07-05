@@ -1,6 +1,7 @@
 package dev.benmitchell.mcpkg.cli;
 
 import java.io.IOException;
+import java.lang.System.Logger.Level;
 import java.util.List;
 
 import org.fusesource.jansi.Ansi;
@@ -9,10 +10,15 @@ import org.fusesource.jansi.Ansi.Color;
 import org.jline.terminal.TerminalBuilder;
 
 import dev.benmitchell.mcpkg.MCPKGLogger;
+import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
+import dev.benmitchell.mcpkg.exceptions.MCPKGException;
+import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
+import dev.benmitchell.mcpkg.exceptions.PackNotFoundException;
 import dev.benmitchell.mcpkg.packs.Pack;
 import dev.benmitchell.mcpkg.packs.Pack.Version;
 import dev.benmitchell.mcpkg.sources.LocalSource;
 import dev.benmitchell.mcpkg.sources.PackSource;
+import dev.benmitchell.mcpkg.sources.RemoteSource;
 import dev.benmitchell.mcpkg.vanillatweaks.VTSource;
 
 /**
@@ -65,8 +71,23 @@ public class CommandLine {
      * @param packIds The IDs of the packs to install
      */
     public static int install(List<String> packIds) {
-        // TODO: Not implemented
-        return 1;
+        RemoteSource source = new VTSource();
+        try {
+            List<Pack> packs = source.getPacks(packIds);
+            source.downloadPacks(packs);
+            for (Pack pack : packs)
+                pack.install();
+        } catch (IOException ex) {
+            MCPKGLogger.err(ex);
+            return 1;
+        } catch (PackNotDownloadedException ex) {
+            MCPKGLogger.err(ex);
+            return 1;
+        } catch (InvalidDirectoryException ex) {
+            MCPKGLogger.err(ex);
+            return 1;
+        }
+        return 0;
     }
 
     /**
