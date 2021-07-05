@@ -2,7 +2,7 @@
 
 Package manager for Minecraft datapacks, crafting tweaks, and resource packs
 
-![demo](images/mcpkg-demo.gif)
+![demo](images/list-install-demo.png)
 
 ## Usage
 
@@ -16,49 +16,7 @@ Will give you a list of commands that can be run. Certain commands like `mcpkg l
 
 ### Dependencies
 
-- **Python 3.7 or better:** If you're on linux or macOS, you should install from your package manager. If you're on Windows, you can install python from [their site](https://www.python.org/)
-
-### Installing the cross-platform way
-
-The easiset and most recommended way to install mcpkg is with `pip`
-
-```sh
-pip install mcpkg
-```
-
-## Road-map
-
-### Pre-release Version 0.1
-
-Here purely for archiving purposes, everything here has already been implemented
-
-- [x] Install support for crafting tweaks
-- [x] Install support for data packs
-- [x] Removing packages
-- [x] Search using regular expressions
-- [x] Listing installed packs in a particular world folder
-- [x] Upgrading packages that are out of date
-- [x] Out-of-date notifications
-- [x] Prompting the user to auto-update all out-of-date packages
-
-### Pre-release Version 0.2
-
-My aim for 0.2 is to have more of the code shared between the 3 types of installation. Also, the super hotly demanded resourcepack feature is in the works
-
-- [ ] Resourcepack support
-- [ ] Share installation method across resource, crafting and data packs
-- [ ] Use pack grouping logic from vanillatweaks.net, instead of running our own
-
-### Release Version 1.0
-
-I think a full release would mean that the project is in a situation where it has all the features one could possibly want out of a Vanilla Tweaks package manager
-
-- [ ] Completions
-  - [ ] Bash
-  - [ ] ZSH
-  - [ ] Fish
-  - [ ] Powershell
-- [ ] Install support for resource packs on server machines
+- **Java 11 or better:** If you're on linux or macOS, you should install from your package manager. If you're on Windows, you can install java from [their site](https://www.java.com/en/download/manual.jsp)
 
 ## FAQ
 
@@ -79,18 +37,3 @@ We're just the messenger. This is not the place to submit packs. Please see [van
 ### Can I help make this better?
 
 Yes! This is GitHub, make an account if you don't have one already. Clone the repo or make an [issue](https://github.com/CRISPYricePC/mcpkg/issues/new/choose) at the top, we'll be happy to help
-
-## Developing on VSCode
-
-mcpkg uses poetry; a Python virtual environment. To make sure you're running in the virtual environment, run:
-
-```sh
-poetry env info -p
-```
-
-to get the virtual environment path. Then edit `.vscode/settings.json`:
-
-```json
-"python.pythonPath": "<output of poetry env info -p>/bin/python3",
-"python.analysis.stubPath": "<output of poetry env info -p>/lib/python3.9/site-packages",
-```
