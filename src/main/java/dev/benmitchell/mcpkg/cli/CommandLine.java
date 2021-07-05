@@ -58,7 +58,7 @@ public class CommandLine {
                 builder.append("...");
             } catch (StringIndexOutOfBoundsException ex) {
                 // Do nothing, we just want to catch the exception
-                MCPKGLogger.err(ex);
+                // MCPKGLogger.err(ex);
             }
         } else {
             builder.append(pack.getDescription());
