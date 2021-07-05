@@ -1,6 +1,8 @@
 package dev.benmitchell.mcpkg.cli;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +65,13 @@ public class CommandLine {
         return builder.toString();
     }
 
-    private static boolean askForConfirmation(String question) {
+    private static boolean askForConfirmation(String question) throws IOException {
+        System.err.print(question + " [Y/n]: ");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            String input = reader.readLine();
+            if ((input.length() > 0 && Character.toLowerCase(input.charAt(0)) == 'y') || input.length() == 0)
+                return true;
+        }
         return false;
     }
 
@@ -93,7 +101,8 @@ public class CommandLine {
             // trying to install
             if (localSource.hasPack(pack)
                     && localSource.getPack(pack.getPackId()).getVersion().compareTo(pack.getVersion()) >= 0) {
-                if (confirm && !askForConfirmation(pack + " is already installed. Do you want to replace?"))
+                if (confirm && !askForConfirmation(
+                        pack + " is already installed at the latest version. Do you want to replace?"))
                     // Skip this pack if the user decides to not install
                     continue;
                 // Remove the old pack to prepare for the installation of the new one
