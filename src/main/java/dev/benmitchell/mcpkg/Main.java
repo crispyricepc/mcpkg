@@ -1,5 +1,6 @@
 package dev.benmitchell.mcpkg;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.Map;
 
 import dev.benmitchell.mcpkg.cli.ArgParser;
 import dev.benmitchell.mcpkg.cli.CommandLine;
-import dev.benmitchell.mcpkg.exceptions.InvalidFlagException;
+import dev.benmitchell.mcpkg.exceptions.MCPKGException;
 
 public class Main {
     public static void main(String[] args) {
@@ -38,7 +39,10 @@ public class Main {
             if (subcommands.get(0).equals("info"))
                 System.exit(CommandLine.info(subcommands.subList(1, subcommands.size())));
 
-        } catch (InvalidFlagException ex) {
+        } catch (IOException ex) {
+            MCPKGLogger.err(ex);
+            System.exit(1);
+        } catch (MCPKGException ex) {
             MCPKGLogger.err(ex);
             System.exit(1);
         }

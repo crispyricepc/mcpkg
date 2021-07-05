@@ -92,6 +92,7 @@ public abstract class Pack {
     protected List<String> incompatibilities;
     protected PackType packType;
     protected Optional<File> downloadedData;
+    protected boolean installed;
 
     public Pack(String packId, String displayName, String description, Version version, List<String> dependencies,
             List<String> incompatibilities, PackType packType, Optional<File> downloadedData) {
@@ -103,6 +104,7 @@ public abstract class Pack {
         this.incompatibilities = incompatibilities;
         this.packType = packType;
         this.downloadedData = downloadedData;
+        this.installed = false;
     }
 
     /**
@@ -163,6 +165,13 @@ public abstract class Pack {
     }
 
     /**
+     * @return true if the pack is installed
+     */
+    public boolean isInstalled() {
+        return installed;
+    }
+
+    /**
      * @return The data on disk that's been downloaded
      */
     public File getDownloadedData() throws PackNotDownloadedException {
@@ -187,6 +196,7 @@ public abstract class Pack {
         Path destFile = destination.resolve(toString() + ".zip");
         setDownloadedData(
                 Files.move(getDownloadedData().toPath(), destFile, StandardCopyOption.REPLACE_EXISTING).toFile());
+        installed = true;
     }
 
     /**
@@ -202,6 +212,7 @@ public abstract class Pack {
     public void uninstall() throws IOException, PackNotDownloadedException {
         Files.delete(getDownloadedData().toPath());
         downloadedData = Optional.empty();
+        installed = false;
     }
 
     @Override

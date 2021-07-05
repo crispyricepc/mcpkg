@@ -10,6 +10,18 @@ import dev.benmitchell.mcpkg.exceptions.PackNotFoundException;
 import dev.benmitchell.mcpkg.packs.Pack;
 
 public abstract class PackSource {
+    public boolean hasPack(String packId) throws IOException {
+        for (Pack pack : getPacks()) {
+            if (pack.getPackId().equals(packId))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean hasPack(Pack pack) throws IOException {
+        return hasPack(pack.getPackId());
+    }
+
     /**
      * Gets a list of all packs contained by the source
      */

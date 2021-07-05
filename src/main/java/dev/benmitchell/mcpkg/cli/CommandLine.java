@@ -1,7 +1,6 @@
 package dev.benmitchell.mcpkg.cli;
 
 import java.io.IOException;
-import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,9 +9,7 @@ import org.fusesource.jansi.Ansi.Color;
 
 import org.jline.terminal.TerminalBuilder;
 
-import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
-import dev.benmitchell.mcpkg.exceptions.MCPKGException;
 import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 import dev.benmitchell.mcpkg.exceptions.PackNotFoundException;
 import dev.benmitchell.mcpkg.packs.Pack;
@@ -66,28 +63,62 @@ public class CommandLine {
         return builder.toString();
     }
 
+    private static boolean askForConfirmation(String question) {
+        return false;
+    }
+
+    /**
+     * Local-source-aware install method
+     * 
+     * @param packs        The packs to install
+     * @param remoteSource The remote source to get the packs from
+     * @param confirm      Whether to ask for confirmation when replacing other
+     *                     packs
+     * @throws InvalidDirectoryException  When a pack that requries a specific
+     *                                    directory is installed, and it's not
+     *                                    adhered to
+     * @throws PackNotFoundException      If localSource.hasPack() fails to catch an
+     *                                    outlying case. Treat as a bug
+     * @throws PackNotDownloadedException If a locally installed pack is not
+     *                                    downloaded. Treat as a bug
+     */
+    private static void installPacks(List<Pack> packs, RemoteSource remoteSource, boolean confirm)
+            throws InvalidDirectoryException, IOException, PackNotFoundException, PackNotDownloadedException {
+        List<Pack> packsToInstall = new ArrayList<Pack>();
+
+        // Check version differences between packs
+        LocalSource localSource = new LocalSource();
+        for (Pack pack : packs) {
+            // If the pack is already installed and its version is >= the version we're
+            // trying to install
+            if (localSource.hasPack(pack)
+                    && localSource.getPack(pack.getPackId()).getVersion().compareTo(pack.getVersion()) >= 0) {
+                if (confirm && !askForConfirmation(pack + " is already installed. Do you want to replace?"))
+                    // Skip this pack if the user decides to not install
+                    continue;
+                // Remove the old pack to prepare for the installation of the new one
+                localSource.getPack(pack.getPackId()).uninstall();
+            }
+
+            packsToInstall.add(pack);
+        }
+
+        // Install the new packs
+        remoteSource.downloadPacks(packsToInstall);
+        for (Pack pack : packsToInstall)
+            pack.install();
+    }
+
     /**
      * Installs one or multiple packs
      * 
      * @param packIds The IDs of the packs to install
      */
-    public static int install(List<String> packIds) {
+    public static int install(List<String> packIds)
+            throws IOException, PackNotDownloadedException, InvalidDirectoryException, PackNotFoundException {
         RemoteSource source = new VTSource();
-        try {
-            List<Pack> packs = source.getPacks(packIds);
-            source.downloadPacks(packs);
-            for (Pack pack : packs)
-                pack.install();
-        } catch (IOException ex) {
-            MCPKGLogger.err(ex);
-            return 1;
-        } catch (PackNotDownloadedException ex) {
-            MCPKGLogger.err(ex);
-            return 1;
-        } catch (InvalidDirectoryException ex) {
-            MCPKGLogger.err(ex);
-            return 1;
-        }
+        List<Pack> packs = source.getPacks(packIds);
+        installPacks(packs, source, true);
         return 0;
     }
 
@@ -96,18 +127,10 @@ public class CommandLine {
      * 
      * @param packIds The IDs of the packs to uninstall
      */
-    public static int uninstall(List<String> packIds) {
+    public static int uninstall(List<String> packIds) throws PackNotDownloadedException, IOException {
         LocalSource source = new LocalSource();
-        try {
-            for (Pack pack : source.getPacks(packIds))
-                pack.uninstall();
-        } catch (IOException ex) {
-            MCPKGLogger.err(ex);
-            return 1;
-        } catch (PackNotDownloadedException ex) {
-            MCPKGLogger.err(ex);
-            return 1;
-        }
+        for (Pack pack : source.getPacks(packIds))
+            pack.uninstall();
         return 0;
     }
 
@@ -117,55 +140,18 @@ public class CommandLine {
      * @param packIds The IDs of the packs to update. Will update all if no IDs are
      *                specified
      */
-    public static int update(List<String> packIds) {
+    public static int update(List<String> packIds)
+            throws InvalidDirectoryException, PackNotFoundException, PackNotDownloadedException, IOException {
         List<Pack> packsToUpdate;
         LocalSource localSource = new LocalSource();
-        try {
-            if (packIds.size() == 0)
-                // Update everything
-                packsToUpdate = localSource.getPacks();
-            else
-                packsToUpdate = localSource.getPacks(packIds);
+        if (packIds.size() == 0)
+            // Update everything
+            packsToUpdate = localSource.getPacks();
+        else
+            packsToUpdate = localSource.getPacks(packIds);
 
-            // Check version differences between packs
-            RemoteSource remoteSource = new VTSource();
-            List<Pack> packsToInstall = new ArrayList<Pack>();
-            List<Pack> packsToUninstall = new ArrayList<Pack>();
-            for (Pack pack : packsToUpdate) {
-                try {
-                    Pack remotePack = remoteSource.getPack(pack.getPackId());
-                    if (pack.getVersion().compareTo(remotePack.getVersion()) < 0) {
-                        packsToInstall.add(remotePack);
-                        packsToUninstall.add(pack);
-                    }
-                } catch (PackNotFoundException ex) {
-                    MCPKGLogger.log(Level.WARNING, "Couldn't update " + pack + ". " + ex.getMessage());
-                }
-            }
+        installPacks(packsToUpdate, new VTSource(), true);
 
-            // Download and install the remaning packs
-            remoteSource.downloadPacks(packsToInstall);
-            for (Pack packToInstall : packsToInstall) {
-                try {
-                    packToInstall.install();
-                } catch (MCPKGException ex) {
-                    MCPKGLogger.err(ex);
-                }
-            }
-            for (Pack packToUninstall : packsToUninstall) {
-                try {
-                    packToUninstall.uninstall();
-                } catch (MCPKGException ex) {
-                    MCPKGLogger.err(ex);
-                }
-            }
-
-            if (packsToInstall.size() == 0)
-                MCPKGLogger.log(Level.INFO, "No packs require update");
-        } catch (IOException ex) {
-            MCPKGLogger.err(ex);
-            return 1;
-        }
         return 0;
     }
 
@@ -174,20 +160,16 @@ public class CommandLine {
      * 
      * @param installed Whether to limit the listing to only installed packs
      */
-    public static int list(boolean installed) {
+    public static int list(boolean installed) throws IOException {
         PackSource source;
         if (installed)
             source = new LocalSource();
         else
             source = new VTSource();
 
-        try {
-            int consoleWidth = TerminalBuilder.terminal().getWidth();
-            for (Pack pack : source.getPacks()) {
-                System.out.println(printPackShort(pack, consoleWidth));
-            }
-        } catch (IOException ex) {
-            MCPKGLogger.err(ex);
+        int consoleWidth = TerminalBuilder.terminal().getWidth();
+        for (Pack pack : source.getPacks()) {
+            System.out.println(printPackShort(pack, consoleWidth));
         }
         return 0;
     }
@@ -198,20 +180,16 @@ public class CommandLine {
      * @param keywords  A list of keywords used to identify one or many packs
      * @param installed Whether to limit the search to only installed packs
      */
-    public static int search(List<String> keywords, boolean installed) {
+    public static int search(List<String> keywords, boolean installed) throws IOException {
         PackSource source;
         if (installed)
             source = new LocalSource();
         else
             source = new VTSource();
 
-        try {
-            int consoleWidth = TerminalBuilder.terminal().getWidth();
-            for (Pack pack : source.searchForPacks(keywords))
-                System.out.println(printPackShort(pack, consoleWidth));
-        } catch (IOException ex) {
-            MCPKGLogger.err(ex);
-        }
+        int consoleWidth = TerminalBuilder.terminal().getWidth();
+        for (Pack pack : source.searchForPacks(keywords))
+            System.out.println(printPackShort(pack, consoleWidth));
         return 0;
     }
 
