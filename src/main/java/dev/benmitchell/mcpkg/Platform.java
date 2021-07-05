@@ -9,7 +9,7 @@ import org.apache.commons.lang3.SystemUtils;
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 
 public class Platform {
-    private static final Path DOT_MINECRAFT_PATH;
+    public static final Path DOT_MINECRAFT_PATH;
     static {
         if (SystemUtils.IS_OS_WINDOWS)
             DOT_MINECRAFT_PATH = Paths.get(System.getenv("USERPROFILE"), ".minecraft");
@@ -20,7 +20,8 @@ public class Platform {
         }
     };
 
-    public static File getDataPath() {
+    public static final Path DATA_PATH;
+    static {
         Path dataPath;
 
         if (SystemUtils.IS_OS_WINDOWS)
@@ -40,8 +41,8 @@ public class Platform {
         if (!f.exists())
             f.mkdirs();
 
-        return f;
-    }
+        DATA_PATH = f.toPath();
+    };
 
     public static Path getResourcePacksDir() {
         return DOT_MINECRAFT_PATH.resolve("resourcepacks");
