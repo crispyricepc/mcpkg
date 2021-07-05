@@ -10,6 +10,8 @@ import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 
 public class Platform {
     public static final Path DOT_MINECRAFT_PATH;
+    public static final Path DATA_PATH;
+    public static final Path CONFIG_PATH;
     static {
         if (SystemUtils.IS_OS_WINDOWS)
             DOT_MINECRAFT_PATH = Paths.get(System.getenv("USERPROFILE"), ".minecraft");
@@ -18,30 +20,37 @@ public class Platform {
         else {
             DOT_MINECRAFT_PATH = Paths.get(System.getenv("HOME"), ".minecraft");
         }
-    };
-
-    public static final Path DATA_PATH;
-    static {
-        Path dataPath;
 
         if (SystemUtils.IS_OS_WINDOWS)
-            dataPath = Paths.get(System.getenv("APPDATA"), "mcpkg");
+            DATA_PATH = Paths.get(System.getenv("APPDATA"), "mcpkg");
         else if (SystemUtils.IS_OS_MAC)
-            dataPath = Paths.get(System.getenv("HOME"), "Library", "Application Support", "mcpkg");
-        else if (SystemUtils.IS_OS_LINUX) {
+            DATA_PATH = Paths.get(System.getenv("HOME"), "Library", "Application Support", "mcpkg");
+        else {
             String partialDataPath = System.getenv("XDG_DATA_HOME");
             if (partialDataPath == null)
-                dataPath = Paths.get(System.getenv("HOME"), ".local", "share", "mcpkg");
+                DATA_PATH = Paths.get(System.getenv("HOME"), ".local", "share", "mcpkg");
             else
-                dataPath = Paths.get(partialDataPath, "mcpkg");
-        } else
-            throw new RuntimeException("Operating system is not supported");
+                DATA_PATH = Paths.get(partialDataPath, "mcpkg");
+        }
 
-        File f = new File(dataPath.toString());
-        if (!f.exists())
-            f.mkdirs();
+        if (SystemUtils.IS_OS_WINDOWS)
+            CONFIG_PATH = DATA_PATH;
+        else if (SystemUtils.IS_OS_MAC)
+            CONFIG_PATH = Paths.get(System.getenv("HOME"), "Library", "Preferences", "mcpkg");
+        else {
+            String partialConfigPath = System.getenv("XDG_CONFIG_HOME");
+            if (partialConfigPath == null)
+                CONFIG_PATH = Paths.get(System.getenv("HOME"), ".config", "mcpkg");
+            else
+                CONFIG_PATH = Paths.get(partialConfigPath, "mcpkg");
+        }
 
-        DATA_PATH = f.toPath();
+        File dataFile = DATA_PATH.toFile();
+        if (!dataFile.exists())
+            dataFile.mkdirs();
+        File configFile = CONFIG_PATH.toFile();
+        if (!configFile.exists())
+            configFile.mkdirs();
     };
 
     public static Path getResourcePacksDir() {
