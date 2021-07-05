@@ -14,6 +14,7 @@ public class Main {
     public static void main(String[] args) {
         ArgParser globalFlagsParser = new ArgParser(new HashMap<String, Object>() {
             {
+                put("help", false);
                 put("y", false);
                 put("installed", false);
                 put("minecraft-dir", Platform.DOT_MINECRAFT_PATH.toString());
@@ -25,6 +26,9 @@ public class Main {
             enabledFlags = globalFlagsParser.getEnabledFlags(Arrays.asList(args));
 
             List<String> subcommands = globalFlagsParser.getFlaglessArgs();
+            if (subcommands.size() == 0)
+                System.exit(CommandLine.usage());
+
             if (subcommands.get(0).equals("install"))
                 System.exit(CommandLine.install(subcommands.subList(1, subcommands.size())));
             if (subcommands.get(0).equals("uninstall"))

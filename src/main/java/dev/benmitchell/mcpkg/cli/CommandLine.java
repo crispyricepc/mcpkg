@@ -119,6 +119,23 @@ public class CommandLine {
     }
 
     /**
+     * Prints the help message
+     */
+    public static int usage() {
+        System.out.println("mcpkg - A multi-purpose package manager for Minecraft");
+        System.out.println("Commands:");
+        System.out.println("    install   <pack-ids>");
+        System.out.println("    uninstall <pack-ids>");
+        System.out.println("    update    [<pack-ids>]");
+        System.out.println("    list      [--installed]");
+        System.out.println("    search    <keywords> [--installed]");
+        System.out.println("    info      pack-id");
+        System.out.println("    --help");
+
+        return 0;
+    }
+
+    /**
      * Installs one or multiple packs
      * 
      * @param packIds The IDs of the packs to install
