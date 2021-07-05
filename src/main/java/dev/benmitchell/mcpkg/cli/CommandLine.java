@@ -2,6 +2,7 @@ package dev.benmitchell.mcpkg.cli;
 
 import java.io.IOException;
 import java.lang.System.Logger.Level;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fusesource.jansi.Ansi;
@@ -117,8 +118,41 @@ public class CommandLine {
      *                specified
      */
     public static int update(List<String> packIds) {
-        // TODO: Not implemented
-        return 1;
+        List<Pack> packsToUpdate;
+        LocalSource localSource = new LocalSource();
+        try {
+            if (packIds.size() == 0)
+                // Update everything
+                packsToUpdate = localSource.getPacks();
+            else
+                packsToUpdate = localSource.getPacks(packIds);
+
+            // Check version differences between packs
+            RemoteSource remoteSource = new VTSource();
+            List<Pack> packsToInstall = new ArrayList<Pack>();
+            for (Pack pack : packsToUpdate) {
+                try {
+                    Pack remotePack = remoteSource.getPack(pack.getPackId());
+                    if (pack.getVersion().compareTo(remotePack.getVersion()) < 0)
+                        packsToInstall.add(remotePack);
+                } catch (PackNotFoundException ex) {
+                    MCPKGLogger.log(Level.WARNING, "Couldn't update " + pack + ". " + ex.getMessage());
+                }
+            }
+
+            // Download and install the remaning packs
+            remoteSource.downloadPacks(packsToInstall);
+            for (Pack packToInstall : packsToInstall)
+                try {
+                    packToInstall.install();
+                } catch (MCPKGException ex) {
+                    MCPKGLogger.err(ex);
+                }
+        } catch (IOException ex) {
+            MCPKGLogger.err(ex);
+            return 1;
+        }
+        return 0;
     }
 
     /**
