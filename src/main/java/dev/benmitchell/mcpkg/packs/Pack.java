@@ -210,6 +210,7 @@ public abstract class Pack {
      * @throws PackNotDownloadedException if the pack hasn't been downloaded
      */
     public void uninstall() throws IOException, PackNotDownloadedException {
+        MCPKGLogger.log(Level.INFO, "Uninstalling '" + this + "'...");
         Files.delete(getDownloadedData().toPath());
         downloadedData = Optional.empty();
         installed = false;
