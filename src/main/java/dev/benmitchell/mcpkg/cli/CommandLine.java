@@ -130,11 +130,14 @@ public class CommandLine {
             // Check version differences between packs
             RemoteSource remoteSource = new VTSource();
             List<Pack> packsToInstall = new ArrayList<Pack>();
+            List<Pack> packsToUninstall = new ArrayList<Pack>();
             for (Pack pack : packsToUpdate) {
                 try {
                     Pack remotePack = remoteSource.getPack(pack.getPackId());
-                    if (pack.getVersion().compareTo(remotePack.getVersion()) < 0)
+                    if (pack.getVersion().compareTo(remotePack.getVersion()) < 0) {
                         packsToInstall.add(remotePack);
+                        packsToUninstall.add(pack);
+                    }
                 } catch (PackNotFoundException ex) {
                     MCPKGLogger.log(Level.WARNING, "Couldn't update " + pack + ". " + ex.getMessage());
                 }
@@ -142,12 +145,23 @@ public class CommandLine {
 
             // Download and install the remaning packs
             remoteSource.downloadPacks(packsToInstall);
-            for (Pack packToInstall : packsToInstall)
+            for (Pack packToInstall : packsToInstall) {
                 try {
                     packToInstall.install();
                 } catch (MCPKGException ex) {
                     MCPKGLogger.err(ex);
                 }
+            }
+            for (Pack packToUninstall : packsToUninstall) {
+                try {
+                    packToUninstall.uninstall();
+                } catch (MCPKGException ex) {
+                    MCPKGLogger.err(ex);
+                }
+            }
+
+            if (packsToInstall.size() == 0)
+                MCPKGLogger.log(Level.INFO, "No packs require update");
         } catch (IOException ex) {
             MCPKGLogger.err(ex);
             return 1;
