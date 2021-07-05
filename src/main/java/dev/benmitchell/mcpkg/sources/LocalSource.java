@@ -25,7 +25,7 @@ public class LocalSource extends PackSource {
         try {
             files.addAll(Arrays.asList(Platform.getDataPacksDir().toFile().listFiles()));
         } catch (InvalidDirectoryException ex) {
-            MCPKGLogger.log(Level.WARNING, ex.getMessage());
+            // MCPKGLogger.log(Level.WARNING, ex.getMessage());
         }
         // Get resource packs
         files.addAll(Arrays.asList(Platform.getResourcePacksDir().toFile().listFiles()));
