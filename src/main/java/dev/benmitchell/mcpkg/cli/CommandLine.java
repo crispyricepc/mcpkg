@@ -63,7 +63,6 @@ public class CommandLine {
      * Installs one or multiple packs
      * 
      * @param packIds The IDs of the packs to install
-     * @return
      */
     public static int install(List<String> packIds) {
         // TODO: Not implemented
@@ -134,7 +133,7 @@ public class CommandLine {
         } catch (IOException ex) {
             MCPKGLogger.err(ex);
         }
-        return 1;
+        return 0;
     }
 
     /**
