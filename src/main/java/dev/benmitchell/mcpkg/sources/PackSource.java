@@ -34,6 +34,10 @@ public abstract class PackSource {
         for (Pack pack : getPacks()) {
             if (pack.getPackId().equals(packId))
                 return pack;
+
+            String[] split = pack.getPackId().split("\\.");
+            if (split[split.length - 1].equals(packId))
+                return pack;
         }
         throw new PackNotFoundException(packId);
     }
