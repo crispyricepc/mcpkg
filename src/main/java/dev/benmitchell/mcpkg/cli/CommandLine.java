@@ -96,8 +96,18 @@ public class CommandLine {
      * @param packIds The IDs of the packs to uninstall
      */
     public static int uninstall(List<String> packIds) {
-        // TODO: Not implemented
-        return 1;
+        LocalSource source = new LocalSource();
+        try {
+            for (Pack pack : source.getPacks(packIds))
+                pack.uninstall();
+        } catch (IOException ex) {
+            MCPKGLogger.err(ex);
+            return 1;
+        } catch (PackNotDownloadedException ex) {
+            MCPKGLogger.err(ex);
+            return 1;
+        }
+        return 0;
     }
 
     /**
