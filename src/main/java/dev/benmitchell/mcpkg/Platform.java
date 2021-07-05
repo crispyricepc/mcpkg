@@ -13,31 +13,21 @@ public class Platform {
     public static final Path DATA_PATH;
     public static final Path CONFIG_PATH;
     static {
-        if (SystemUtils.IS_OS_WINDOWS)
-            DOT_MINECRAFT_PATH = Paths.get(System.getenv("USERPROFILE"), ".minecraft");
-        else if (SystemUtils.IS_OS_MAC)
-            DOT_MINECRAFT_PATH = Paths.get(System.getenv("HOME"), "Library", "Application Support", "minecraft");
-        else {
-            DOT_MINECRAFT_PATH = Paths.get(System.getenv("HOME"), ".minecraft");
-        }
-
-        if (SystemUtils.IS_OS_WINDOWS)
+        if (SystemUtils.IS_OS_WINDOWS) {
+            DOT_MINECRAFT_PATH = Paths.get(System.getenv("APPDATA"), ".minecraft");
             DATA_PATH = Paths.get(System.getenv("APPDATA"), "mcpkg");
-        else if (SystemUtils.IS_OS_MAC)
+            CONFIG_PATH = DATA_PATH;
+        } else if (SystemUtils.IS_OS_MAC) {
+            DOT_MINECRAFT_PATH = Paths.get(System.getenv("HOME"), "Library", "Application Support", "minecraft");
             DATA_PATH = Paths.get(System.getenv("HOME"), "Library", "Application Support", "mcpkg");
-        else {
+            CONFIG_PATH = Paths.get(System.getenv("HOME"), "Library", "Preferences", "mcpkg");
+        } else {
+            DOT_MINECRAFT_PATH = Paths.get(System.getenv("HOME"), ".minecraft");
             String partialDataPath = System.getenv("XDG_DATA_HOME");
             if (partialDataPath == null)
                 DATA_PATH = Paths.get(System.getenv("HOME"), ".local", "share", "mcpkg");
             else
                 DATA_PATH = Paths.get(partialDataPath, "mcpkg");
-        }
-
-        if (SystemUtils.IS_OS_WINDOWS)
-            CONFIG_PATH = DATA_PATH;
-        else if (SystemUtils.IS_OS_MAC)
-            CONFIG_PATH = Paths.get(System.getenv("HOME"), "Library", "Preferences", "mcpkg");
-        else {
             String partialConfigPath = System.getenv("XDG_CONFIG_HOME");
             if (partialConfigPath == null)
                 CONFIG_PATH = Paths.get(System.getenv("HOME"), ".config", "mcpkg");
