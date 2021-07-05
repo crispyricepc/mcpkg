@@ -141,7 +141,7 @@ public class VTSource extends RemoteSource {
 
             DownloadManager.downloadToFile(
                     new URL("https://vanillatweaks.net/" + responseJsonObject.get("link").toString()), downloadedFile,
-                    false);
+                    false, "Downloading '" + pack + "'...");
 
             vtPack.setDownloadedData(downloadedFile);
         }

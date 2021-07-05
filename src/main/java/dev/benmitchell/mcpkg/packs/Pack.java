@@ -2,12 +2,14 @@ package dev.benmitchell.mcpkg.packs;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger.Level;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 
+import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 
@@ -181,6 +183,7 @@ public abstract class Pack {
      * Installs the pack to a given destination
      */
     public void installTo(Path destination) throws IOException, PackNotDownloadedException {
+        MCPKGLogger.log(Level.INFO, "Installing '" + this + "' to '" + destination + "'...");
         Path destFile = destination.resolve(toString() + ".zip");
         setDownloadedData(
                 Files.move(getDownloadedData().toPath(), destFile, StandardCopyOption.REPLACE_EXISTING).toFile());
