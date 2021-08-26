@@ -29,3 +29,5 @@ hs_err_pid*
 /.settings
 /.project
 /.classpath
+
+/.vscode/settings.json
