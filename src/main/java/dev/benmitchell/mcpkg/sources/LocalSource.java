@@ -2,14 +2,12 @@ package dev.benmitchell.mcpkg.sources;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 
-import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.Platform;
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 import dev.benmitchell.mcpkg.packs.LocalPack;

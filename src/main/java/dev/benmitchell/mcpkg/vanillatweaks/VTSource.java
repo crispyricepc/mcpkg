@@ -50,7 +50,7 @@ public class VTSource extends RemoteSource {
         // Download the pack cache if it doesn't exist, or the date last modified on the
         // file is > 1 day
         for (String typeInitials : new String[] { "rp", "dp", "ct" }) {
-            File packCacheFile = new File(Platform.DATA_PATH.toFile(), "vt_" + typeInitials + "categories.json");
+            File packCacheFile = new File(Platform.dataPath().toFile(), "vt_" + typeInitials + "categories.json");
             if (!packCacheFile.exists()
                     || Calendar.getInstance().getTimeInMillis() - packCacheFile.lastModified() > 1000 * 24 * 60 * 60) {
                 try {
