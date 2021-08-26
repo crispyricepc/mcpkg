@@ -32,7 +32,11 @@ public class CommandLine {
         return strToColour.length();
     }
 
-    private static String printPackShort(Pack pack, int maxWidth) {
+    private static String printPackShort(Pack pack, int maxWidth) throws IOException, PackNotFoundException {
+        // Get online help
+        RemoteSource remoteSource = new VTSource();
+        pack = remoteSource.getPack(pack.getPackId());
+
         int count = 0;
         StringBuilder builder = new StringBuilder();
         count += addColourString(builder, pack.getDisplayName(), Color.BLUE);
@@ -186,7 +190,7 @@ public class CommandLine {
      * 
      * @param installed Whether to limit the listing to only installed packs
      */
-    public static int list(boolean installed) throws IOException {
+    public static int list(boolean installed) throws IOException, PackNotFoundException {
         PackSource source;
         if (installed)
             source = new LocalSource();
@@ -206,7 +210,7 @@ public class CommandLine {
      * @param keywords  A list of keywords used to identify one or many packs
      * @param installed Whether to limit the search to only installed packs
      */
-    public static int search(List<String> keywords, boolean installed) throws IOException {
+    public static int search(List<String> keywords, boolean installed) throws IOException, PackNotFoundException {
         PackSource source;
         if (installed)
             source = new LocalSource();
