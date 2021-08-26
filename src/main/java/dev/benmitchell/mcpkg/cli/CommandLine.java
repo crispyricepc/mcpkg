@@ -32,9 +32,9 @@ public class CommandLine {
         return strToColour.length();
     }
 
-    private static String printPackShort(Pack pack, int maxWidth) throws IOException, PackNotFoundException {
-        // Get online help
-        RemoteSource remoteSource = new VTSource();
+    private static String printPackShort(Pack pack, RemoteSource remoteSource, int maxWidth)
+            throws IOException, PackNotFoundException {
+        // More data is stored in the remote source version, so find that
         pack = remoteSource.getPack(pack.getPackId());
 
         int count = 0;
@@ -192,14 +192,15 @@ public class CommandLine {
      */
     public static int list(boolean installed) throws IOException, PackNotFoundException {
         PackSource source;
+        RemoteSource remoteSource = new VTSource();
         if (installed)
             source = new LocalSource();
         else
-            source = new VTSource();
+            source = remoteSource;
 
         int consoleWidth = TerminalBuilder.terminal().getWidth();
         for (Pack pack : source.getPacks()) {
-            System.out.println(printPackShort(pack, consoleWidth));
+            System.out.println(printPackShort(pack, remoteSource, consoleWidth));
         }
         return 0;
     }
@@ -212,14 +213,15 @@ public class CommandLine {
      */
     public static int search(List<String> keywords, boolean installed) throws IOException, PackNotFoundException {
         PackSource source;
+        RemoteSource remoteSource = new VTSource();
         if (installed)
             source = new LocalSource();
         else
-            source = new VTSource();
+            source = remoteSource;
 
         int consoleWidth = TerminalBuilder.terminal().getWidth();
         for (Pack pack : source.searchForPacks(keywords))
-            System.out.println(printPackShort(pack, consoleWidth));
+            System.out.println(printPackShort(pack, remoteSource, consoleWidth));
         return 0;
     }
 

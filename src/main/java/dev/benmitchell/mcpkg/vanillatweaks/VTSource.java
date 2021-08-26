@@ -29,6 +29,8 @@ import dev.benmitchell.mcpkg.packs.PackType;
 import dev.benmitchell.mcpkg.sources.RemoteSource;
 
 public class VTSource extends RemoteSource {
+    private List<Pack> packs = null;
+
     public class VTRemoteException extends RuntimeException {
         public VTRemoteException(String errorMessage) {
             super("vanillatweaks.net returned the following error: " + errorMessage);
@@ -45,7 +47,10 @@ public class VTSource extends RemoteSource {
 
     @Override
     public List<Pack> getPacks() throws IOException {
-        List<Pack> packs = new ArrayList<Pack>();
+        if (packs != null) {
+            return packs;
+        }
+        packs = new ArrayList<Pack>();
 
         // Download the pack cache if it doesn't exist, or the date last modified on the
         // file is > 1 day
