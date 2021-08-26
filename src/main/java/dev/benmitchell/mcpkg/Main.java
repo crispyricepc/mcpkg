@@ -17,7 +17,7 @@ public class Main {
                 put("help", false);
                 put("y", false);
                 put("installed", false);
-                put("minecraft-dir", Platform.dotMinecraftPath().toString());
+                put("minecraft-dir", Platform.config.dotMinecraftPath.toString());
             }
         });
 

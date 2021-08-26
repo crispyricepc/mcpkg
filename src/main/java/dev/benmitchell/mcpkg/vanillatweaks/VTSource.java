@@ -16,10 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dev.benmitchell.mcpkg.DownloadManager;
 import dev.benmitchell.mcpkg.MCPKGLogger;
@@ -29,6 +27,34 @@ import dev.benmitchell.mcpkg.packs.PackType;
 import dev.benmitchell.mcpkg.sources.RemoteSource;
 
 public class VTSource extends RemoteSource {
+    public static class VTJson {
+        public static class Category {
+            public static class Warning {
+                public String text;
+                public String color;
+            }
+
+            public static class RemotePack {
+                public String name;
+                public String display;
+                public String previewExtension;
+                public String description;
+                public List<String> incompatible;
+                public List<String> requires;
+                public String version;
+                public String video;
+                public boolean experiment;
+                public int lastupdated;
+            }
+
+            public String category;
+            public List<RemotePack> packs;
+            public Warning warning;
+        }
+
+        public List<Category> categories;
+    }
+
     private List<Pack> packs = null;
 
     public class VTRemoteException extends RuntimeException {
@@ -55,7 +81,7 @@ public class VTSource extends RemoteSource {
         // Download the pack cache if it doesn't exist, or the date last modified on the
         // file is > 1 day
         for (String typeInitials : new String[] { "rp", "dp", "ct" }) {
-            File packCacheFile = new File(Platform.dataPath().toFile(), "vt_" + typeInitials + "categories.json");
+            File packCacheFile = new File(Platform.config.dataPath.toFile(), "vt_" + typeInitials + "categories.json");
             if (!packCacheFile.exists()
                     || Calendar.getInstance().getTimeInMillis() - packCacheFile.lastModified() > 1000 * 24 * 60 * 60) {
                 try {
@@ -68,30 +94,25 @@ public class VTSource extends RemoteSource {
             }
 
             // JSON convert the file
-            JSONParser jParser = new JSONParser();
-            JSONObject jObject;
+            ObjectMapper mapper = new ObjectMapper();
+            VTJson jsonData;
             try (Reader reader = new BufferedReader(new FileReader(packCacheFile))) {
-                jObject = (JSONObject) jParser.parse(reader);
-            } catch (ParseException ex) {
-                throw new RuntimeException(ex);
+                jsonData = mapper.readValue(reader, VTJson.class);
             }
 
             // Build the list of packs
-            for (Object category : (JSONArray) jObject.get("categories")) {
-                for (Object pack : (JSONArray) ((JSONObject) category).get("packs")) {
+            for (var category : jsonData.categories) {
+                for (var pack : category.packs) {
                     PackType pType = TYPE_INITIAL_MAP.get(typeInitials);
                     switch (pType) {
                         case CRAFTINGTWEAK:
-                            packs.add(new VTCraftingPack((JSONObject) pack,
-                                    ((JSONObject) category).get("category").toString()));
+                            packs.add(new VTCraftingPack(pack, category.category));
                             break;
                         case DATAPACK:
-                            packs.add(new VTDataPack((JSONObject) pack,
-                                    ((JSONObject) category).get("category").toString()));
+                            packs.add(new VTDataPack(pack, category.category));
                             break;
                         case RESOURCEPACK:
-                            packs.add(new VTResourcePack((JSONObject) pack,
-                                    ((JSONObject) category).get("category").toString()));
+                            packs.add(new VTResourcePack(pack, category.category));
                             break;
                         default:
                             throw new RuntimeException("This packtype (" + pType.toString() + ") is not valid");
@@ -107,21 +128,25 @@ public class VTSource extends RemoteSource {
     public List<Pack> downloadPacks(List<Pack> packs) throws IOException {
         Path tmpDir = Files.createTempDirectory("mcpkg");
 
+        ObjectMapper mapper = new ObjectMapper();
+
         for (Pack pack : packs) {
             String typeString = pack.getPackType().toString().toLowerCase();
 
-            // Create request
+            // Create list of packs for the request
             VTPack vtPack = (VTPack) pack;
-            Map<String, List<String>> jsonMap = new HashMap<String, List<String>>();
+            Map<String, List<String>> packListMap = new HashMap<String, List<String>>();
             List<String> requestList = new ArrayList<String>(1);
             requestList.add(vtPack.getName());
-            jsonMap.put(vtPack.getCategory(), requestList);
-            JSONObject jObject = new JSONObject(jsonMap);
+            packListMap.put(vtPack.getCategory(), requestList);
+            String packListJson = mapper.writeValueAsString(packListMap);
 
             // Create request
             Map<String, String> postMap = new HashMap<String, String>();
             postMap.put("version", "1.17");
-            postMap.put("packs", jObject.toJSONString());
+            postMap.put("packs", packListJson);
+
+            // Post request
             URL requestUrl = new URL("https://vanillatweaks.net/assets/server/zip" + typeString + "s.php");
             String response;
             try {
@@ -130,23 +155,15 @@ public class VTSource extends RemoteSource {
                 MCPKGLogger.log(Level.ERROR, "Request URL: '" + requestUrl + "' is invalid");
                 throw new RuntimeException(ex);
             }
-            JSONParser jParser = new JSONParser();
-            JSONObject responseJsonObject;
-            try {
-                responseJsonObject = (JSONObject) jParser.parse(response);
-            } catch (ParseException ex) {
-                MCPKGLogger.log(Level.ERROR, "A syntax error has occured");
-                throw new RuntimeException(ex);
-            }
+            JsonNode responseNode = mapper.readTree(response);
 
-            if (responseJsonObject.get("status").equals("error"))
-                throw new VTRemoteException((String) responseJsonObject.get("message"));
+            if (responseNode.get("status").asText().equals("error"))
+                throw new VTRemoteException(responseNode.get("message").asText("No error message"));
 
             File downloadedFile = tmpDir.resolve(vtPack + ".zip").toFile();
 
-            DownloadManager.downloadToFile(
-                    new URL("https://vanillatweaks.net/" + responseJsonObject.get("link").toString()), downloadedFile,
-                    false, "Downloading '" + pack + "'...");
+            DownloadManager.downloadToFile(new URL("https://vanillatweaks.net/" + responseNode.get("link").asText()),
+                    downloadedFile, false, "Downloading '" + pack + "'...");
 
             vtPack.setDownloadedData(downloadedFile);
         }

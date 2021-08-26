@@ -11,14 +11,18 @@ import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.commons.lang3.SystemUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 
 public class Platform {
+    public static class Config {
+        public Path dotMinecraftPath = DOT_MINECRAFT_PATH;
+        public Path dataPath = DATA_PATH;
+    }
+
     private static final Path DOT_MINECRAFT_PATH;
     private static final Path DATA_PATH;
     private static final Path CONFIG_PATH;
@@ -53,23 +57,20 @@ public class Platform {
             configFile.mkdirs();
     };
 
-    private static JSONObject configFile;
+    public static Config config;
     static {
         try {
-            JSONParser parser = new JSONParser();
-            File cfgFile = configPath().resolve("config.json").toFile();
+            ObjectMapper mapper = new ObjectMapper();
+            File cfgFile = CONFIG_PATH.resolve("config.json").toFile();
             if (!cfgFile.exists())
                 try (FileWriter writer = new FileWriter(cfgFile)) {
                     writer.write("{\n}\n");
                 }
             try (Reader reader = new BufferedReader(new FileReader(cfgFile))) {
-                configFile = (JSONObject) parser.parse(reader);
+                config = mapper.readValue(cfgFile, Config.class);
             } catch (FileNotFoundException ex) {
                 MCPKGLogger.err(ex);
                 MCPKGLogger.log(Level.ERROR, "If you've reached this code, file a bug report");
-                System.exit(-1);
-            } catch (ParseException ex) {
-                MCPKGLogger.err(ex);
                 System.exit(-1);
             }
         } catch (IOException ex) {
@@ -78,27 +79,15 @@ public class Platform {
         }
     }
 
-    public static Path dotMinecraftPath() {
-        return (Path) configFile.getOrDefault("dotMinecraftPath", DOT_MINECRAFT_PATH);
-    }
-
-    public static Path dataPath() {
-        return (Path) configFile.getOrDefault("dataPath", DATA_PATH);
-    }
-
-    public static Path configPath() {
-        return CONFIG_PATH;
-    }
-
     public static Path getResourcePacksDir() {
-        return dotMinecraftPath().resolve("resourcepacks");
+        return DOT_MINECRAFT_PATH.resolve("resourcepacks");
     }
 
     public static boolean isADataPacksDir(Path directory) {
         return directory // .minecraft/saves/some_save_folder/datapacks
                 .getParent() // .minecraft/saves/some_save_folder
                 .getParent() // .minecraft/saves
-                .equals(dotMinecraftPath().resolve("saves")) && directory.getFileName().equals(Paths.get("datapacks"));
+                .equals(DOT_MINECRAFT_PATH.resolve("saves")) && directory.getFileName().equals(Paths.get("datapacks"));
     }
 
     public static Path getDataPacksDir() throws InvalidDirectoryException {
@@ -110,7 +99,7 @@ public class Platform {
         // If we're in a worlds directory inside .minecraft
         if (cwd // .minecraft/saves/some_save_folder
                 .getParent() // .minecraft/saves
-                .equals(dotMinecraftPath().resolve("saves")))
+                .equals(DOT_MINECRAFT_PATH.resolve("saves")))
             return cwd.resolve("datapacks");
 
         throw new InvalidDirectoryException(cwd, "A unique data pack directory couldn't be found");

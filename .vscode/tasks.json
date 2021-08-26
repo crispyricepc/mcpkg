@@ -6,11 +6,11 @@
         {
             "label": "compile",
             "type": "shell",
-            "command": "${workspaceFolder}/install.sh",
+            "command": "DIST_DIR=${workspaceFolder}/dist ${workspaceFolder}/deploy.sh",
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
         },
         {
             "label": "verify",
