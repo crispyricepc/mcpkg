@@ -4,15 +4,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "compile",
-            "type": "shell",
-            "command": "DIST_DIR=${workspaceFolder}/dist ${workspaceFolder}/deploy.sh",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-        },
-        {
             "label": "verify",
             "type": "shell",
             "command": "mvn -B verify",
