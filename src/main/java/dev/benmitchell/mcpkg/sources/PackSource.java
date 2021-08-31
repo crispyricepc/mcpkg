@@ -43,12 +43,13 @@ public abstract class PackSource {
     }
 
     public Pack getPack(String packId) throws IOException, PackNotFoundException {
+        String packIdLower = packId.toLowerCase();
         for (Pack pack : getPacks()) {
-            if (pack.getPackId().equals(packId))
+            if (pack.getPackId().toLowerCase().equals(packIdLower))
                 return pack;
 
             String[] split = pack.getPackId().split("\\.");
-            if (split[split.length - 1].equals(packId))
+            if (split[split.length - 1].toLowerCase().equals(packIdLower))
                 return pack;
         }
         throw new PackNotFoundException(packId);
