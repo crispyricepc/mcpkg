@@ -1,17 +1,31 @@
 package dev.benmitchell.mcpkg;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
+import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.SystemUtils;
 
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 
 public class Platform {
-    public static final Path DOT_MINECRAFT_PATH;
-    public static final Path DATA_PATH;
-    public static final Path CONFIG_PATH;
+    public static class Config {
+        public Path dotMinecraftPath = DOT_MINECRAFT_PATH;
+        public Path dataPath = DATA_PATH;
+    }
+
+    private static final Path DOT_MINECRAFT_PATH;
+    private static final Path DATA_PATH;
+    private static final Path CONFIG_PATH;
     static {
         if (SystemUtils.IS_OS_WINDOWS) {
             DOT_MINECRAFT_PATH = Paths.get(System.getenv("APPDATA"), ".minecraft");
@@ -43,15 +57,38 @@ public class Platform {
             configFile.mkdirs();
     };
 
+    public static Config config;
+    static {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            File cfgFile = CONFIG_PATH.resolve("config.json").toFile();
+            if (!cfgFile.exists())
+                try (FileWriter writer = new FileWriter(cfgFile)) {
+                    writer.write("{\n}\n");
+                }
+            try (Reader reader = new BufferedReader(new FileReader(cfgFile))) {
+                config = mapper.readValue(cfgFile, Config.class);
+            } catch (FileNotFoundException ex) {
+                MCPKGLogger.err(ex);
+                MCPKGLogger.log(Level.ERROR, "If you've reached this code, file a bug report");
+                System.exit(-1);
+            }
+        } catch (IOException ex) {
+            MCPKGLogger.err(ex);
+            System.exit(-1);
+        }
+    }
+
     public static Path getResourcePacksDir() {
-        return DOT_MINECRAFT_PATH.resolve("resourcepacks");
+        return config.dotMinecraftPath.resolve("resourcepacks");
     }
 
     public static boolean isADataPacksDir(Path directory) {
         return directory // .minecraft/saves/some_save_folder/datapacks
                 .getParent() // .minecraft/saves/some_save_folder
                 .getParent() // .minecraft/saves
-                .equals(DOT_MINECRAFT_PATH.resolve("saves")) && directory.getFileName().equals(Paths.get("datapacks"));
+                .equals(config.dotMinecraftPath.resolve("saves"))
+                && directory.getFileName().equals(Paths.get("datapacks"));
     }
 
     public static Path getDataPacksDir() throws InvalidDirectoryException {
@@ -63,7 +100,7 @@ public class Platform {
         // If we're in a worlds directory inside .minecraft
         if (cwd // .minecraft/saves/some_save_folder
                 .getParent() // .minecraft/saves
-                .equals(DOT_MINECRAFT_PATH.resolve("saves")))
+                .equals(config.dotMinecraftPath.resolve("saves")))
             return cwd.resolve("datapacks");
 
         throw new InvalidDirectoryException(cwd, "A unique data pack directory couldn't be found");

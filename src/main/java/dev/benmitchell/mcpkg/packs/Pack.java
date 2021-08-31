@@ -89,19 +89,19 @@ public abstract class Pack {
     protected String description;
     protected Version version;
     protected List<String> dependencies;
-    protected List<String> incompatibilities;
+    protected List<String> incompatible;
     protected PackType packType;
     protected Optional<File> downloadedData;
     protected boolean installed;
 
     public Pack(String packId, String displayName, String description, Version version, List<String> dependencies,
-            List<String> incompatibilities, PackType packType, Optional<File> downloadedData) {
+            List<String> incompatible, PackType packType, Optional<File> downloadedData) {
         this.packId = packId;
         this.displayName = displayName;
         this.description = description;
         this.version = version;
         this.dependencies = dependencies;
-        this.incompatibilities = incompatibilities;
+        this.incompatible = incompatible;
         this.packType = packType;
         this.downloadedData = downloadedData;
         this.installed = false;
@@ -145,8 +145,8 @@ public abstract class Pack {
     /**
      * @return A list of pack IDs that this pack is incompatible with
      */
-    public List<String> getIncompatibilities() {
-        return incompatibilities;
+    public List<String> getIncompatible() {
+        return incompatible;
     }
 
     /**

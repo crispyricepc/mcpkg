@@ -32,7 +32,11 @@ public class CommandLine {
         return strToColour.length();
     }
 
-    private static String printPackShort(Pack pack, int maxWidth) {
+    private static String printPackShort(Pack pack, RemoteSource remoteSource, int maxWidth)
+            throws IOException, PackNotFoundException {
+        // More data is stored in the remote source version, so find that
+        pack = remoteSource.getPack(pack.getPackId());
+
         int count = 0;
         StringBuilder builder = new StringBuilder();
         count += addColourString(builder, pack.getDisplayName(), Color.BLUE);
@@ -186,16 +190,17 @@ public class CommandLine {
      * 
      * @param installed Whether to limit the listing to only installed packs
      */
-    public static int list(boolean installed) throws IOException {
+    public static int list(boolean installed) throws IOException, PackNotFoundException {
         PackSource source;
+        RemoteSource remoteSource = new VTSource();
         if (installed)
             source = new LocalSource();
         else
-            source = new VTSource();
+            source = remoteSource;
 
         int consoleWidth = TerminalBuilder.terminal().getWidth();
         for (Pack pack : source.getPacks()) {
-            System.out.println(printPackShort(pack, consoleWidth));
+            System.out.println(printPackShort(pack, remoteSource, consoleWidth));
         }
         return 0;
     }
@@ -206,16 +211,17 @@ public class CommandLine {
      * @param keywords  A list of keywords used to identify one or many packs
      * @param installed Whether to limit the search to only installed packs
      */
-    public static int search(List<String> keywords, boolean installed) throws IOException {
+    public static int search(List<String> keywords, boolean installed) throws IOException, PackNotFoundException {
         PackSource source;
+        RemoteSource remoteSource = new VTSource();
         if (installed)
             source = new LocalSource();
         else
-            source = new VTSource();
+            source = remoteSource;
 
         int consoleWidth = TerminalBuilder.terminal().getWidth();
         for (Pack pack : source.searchForPacks(keywords))
-            System.out.println(printPackShort(pack, consoleWidth));
+            System.out.println(printPackShort(pack, remoteSource, consoleWidth));
         return 0;
     }
 

@@ -11,16 +11,15 @@ import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.json.simple.JSONObject;
-
 import dev.benmitchell.mcpkg.Platform;
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 import dev.benmitchell.mcpkg.packs.PackType;
+import dev.benmitchell.mcpkg.vanillatweaks.VTSource.VTJson.Category.RemotePack;
 
 public class VTDataPack extends VTPack {
-    public VTDataPack(JSONObject jObject, String category) {
-        super(jObject, PackType.DATAPACK, category);
+    public VTDataPack(RemotePack jsonPack, String category) {
+        super(jsonPack, PackType.DATAPACK, category);
     }
 
     @Override
