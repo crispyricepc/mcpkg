@@ -3,6 +3,7 @@ package dev.benmitchell.mcpkg.cli;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import org.fusesource.jansi.Ansi.Color;
 
 import org.jline.terminal.TerminalBuilder;
 
+import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 import dev.benmitchell.mcpkg.exceptions.PackNotFoundException;
@@ -32,10 +34,13 @@ public class CommandLine {
         return strToColour.length();
     }
 
-    private static String printPackShort(Pack pack, RemoteSource remoteSource, int maxWidth)
-            throws IOException, PackNotFoundException {
+    private static String printPackShort(Pack pack, RemoteSource remoteSource, int maxWidth) throws IOException {
         // More data is stored in the remote source version, so find that
-        pack = remoteSource.getPack(pack.getPackId());
+        try {
+            pack = remoteSource.getPack(pack.getPackId());
+        } catch (PackNotFoundException ex) {
+            // Ignore this error, it's probably not managed by this tool
+        }
 
         int count = 0;
         StringBuilder builder = new StringBuilder();
