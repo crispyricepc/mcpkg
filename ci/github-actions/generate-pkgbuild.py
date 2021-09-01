@@ -37,7 +37,7 @@ with open('./pkgbuild/mcpkg/PKGBUILD', 'w') as pkgbuild:
     content += f'pkgver={release_tag}\n'
     source_url_prefix = 'https://github.com/CRISPYricePC/mcpkg/releases/download/${pkgver}'
     source_url = source_url_prefix + "/mcpkg-${pkgver}.jar"
-    content += f"source=(\n\t{source_url}\n\tmcpkg::{shell_url}\n\tmcpkg-readme::{readme_url}\n)\n"
+    content += f"source=(\n\t{source_url}\n\tmcpkg::{shell_url}\n\tmcpkg-README.md::{readme_url}\n)\n"
     content += f"sha256sums=(\n"
     for sum in checksums:
         content += f"\t'{sum}'\n"
