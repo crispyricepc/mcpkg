@@ -40,7 +40,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: PKGBUILD
-          path: pkgbuild/mcpkg-bin/PKGBUILD
+          path: pkgbuild/mcpkg/PKGBUILD
       # - uses: KSXGitHub/github-actions-deploy-aur@v2.2.5
       #   name: Publish AUR package
       #   with:
