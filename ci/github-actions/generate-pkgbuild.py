@@ -17,7 +17,7 @@ def gen_hash(filename: str) -> str:
 
 
 checksums = [gen_hash(filename) for filename in [
-    f"mcpkg-{release_tag}.jar",
+    "mcpkg.jar",
     "mcpkg.sh",
     "README.md"
 ]]
