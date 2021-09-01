@@ -36,18 +36,20 @@ jobs:
         with:
           name: mcpkg.jar
       - name: Generate PKGBUILD
-        run: ls -R && ./ci/github-actions/generate-pkgbuild.py
+        run: ./ci/github-actions/generate-pkgbuild.py
       - uses: actions/upload-artifact@v2
         with:
           name: PKGBUILD
           path: pkgbuild/mcpkg/PKGBUILD
-      # - uses: KSXGitHub/github-actions-deploy-aur@v2.2.5
-      #   name: Publish AUR package
-      #   with:
-      #     pkgname: mcpkg
-      #     pkgbuild: pkgbuild/mcpkg/PKGBUILD
-      #     commit_username: ${{ secrets.AUR_USERNAME }}
-      #     commit_email: ${{ secrets.AUR_EMAIL }}
-      #     ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-      #     commit_message: Update AUR package
-      #     ssh_keyscan_types: rsa,dsa,ecdsa,ed25519
+      - uses: KSXGitHub/github-actions-deploy-aur@v2.2.5
+        name: Publish AUR package
+        with:
+          pkgname: mcpkg
+          pkgbuild: pkgbuild/mcpkg/PKGBUILD
+          assets: mcpkg*.jar
+            mcpkg.sh
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update AUR package
+          ssh_keyscan_types: rsa,dsa,ecdsa,ed25519
