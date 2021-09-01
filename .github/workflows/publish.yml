@@ -2,8 +2,6 @@ name: Publish
 on:
   push:
     branches: [releases]
-  release:
-    types: [published, edited]
 
 jobs:
   build:
@@ -23,6 +21,24 @@ jobs:
         with:
           name: mcpkg.jar
           path: target/mcpkg*.jar
+
+  make-release:
+    name: Create release
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: mcpkg.jar
+      - name: Upload jar file
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            mcpkg*.jar
+            mcpkg.sh
 
   make-pkgbuild:
     name: Create PKGBUILD
@@ -46,8 +62,6 @@ jobs:
         with:
           pkgname: mcpkg
           pkgbuild: pkgbuild/mcpkg/PKGBUILD
-          assets: mcpkg*.jar
-            mcpkg.sh
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
