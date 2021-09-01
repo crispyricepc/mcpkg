@@ -1,5 +1,7 @@
 name: Publish
 on:
+  push:
+    branches: [releases]
   release:
     types: [published, edited]
 
@@ -34,7 +36,7 @@ jobs:
         with:
           name: mcpkg.jar
       - name: Generate PKGBUILD
-        run: ./ci/github-actions/generate-pkgbuild.py
+        run: ls -R && ./ci/github-actions/generate-pkgbuild.py
       - uses: actions/upload-artifact@v2
         with:
           name: PKGBUILD
