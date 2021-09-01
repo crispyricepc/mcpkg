@@ -41,7 +41,7 @@ jobs:
         with:
           name: PKGBUILD
           path: pkgbuild/mcpkg/PKGBUILD
-      - uses: KSXGitHub/github-actions-deploy-aur@v2.2.5
+      - uses: KSXGitHub/github-actions-deploy-aur@master
         name: Publish AUR package
         with:
           pkgname: mcpkg
