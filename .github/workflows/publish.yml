@@ -1,7 +1,7 @@
 name: Publish
 on:
-  push:
-    branches: [releases]
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -33,10 +33,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: mcpkg.jar
-      - name: Generate Checksums
-        run: ci/github-actions/generate-checksums.sh
       - name: Generate PKGBUILD
-        run: ./ci/github-actions/generate-pkgbuild.py3
+        run: ./ci/github-actions/generate-pkgbuild.py
       - uses: actions/upload-artifact@v2
         with:
           name: PKGBUILD
@@ -44,8 +42,8 @@ jobs:
       - uses: KSXGitHub/github-actions-deploy-aur@v2.2.5
         name: Publish AUR package
         with:
-          pkgname: mcpkg-bin
-          pkgbuild: pkgbuild/mcpkg-bin/PKGBUILD
+          pkgname: mcpkg
+          pkgbuild: pkgbuild/mcpkg/PKGBUILD
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}

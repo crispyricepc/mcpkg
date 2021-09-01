@@ -1,0 +1,16 @@
+# This PKGBUILD is not a full PKGBUILD
+# pkgname, pkgver, source, and sha1sums are to be generated
+pkgdesc='Package manager for Minecraft resource packs, datapacks and crafting tweaks, wrapped around vanillatweaks.net '
+pkgrel=1
+arch=("any")
+license=(GPL3)
+url='https://github.com/CRISPYricePC/mcpkg'
+depends=(java-environment)
+provides=(mcpkg)
+conflicts=(mcpkg)
+
+package() {
+  install -Dm644 "mcpkg-${pkgver}".jar
+  install -Dm755 mcpkg "${pkgdir}/usr/bin/mcpkg"
+  install -Dm644 mcpkg-README.md "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+}
