@@ -18,6 +18,14 @@ Will give you a list of commands that can be run. Certain commands like `mcpkg l
 
 - **Java 11 or better:** If you're on linux or macOS, you should install from your package manager. If you're on Windows, you can install java from [their site](https://www.java.com/en/download/manual.jsp)
 
+### Arch Linux
+
+mcpkg is available from the Arch User Repository. For example, if you are using [yay](https://github.com/Jguer/yay), run:
+
+```
+$ yay -S mcpkg
+```
+
 ## FAQ
 
 Answers to a few questions that may crop up regarding this tool:
