@@ -3,7 +3,6 @@ package dev.benmitchell.mcpkg.cli;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +11,6 @@ import org.fusesource.jansi.Ansi.Color;
 
 import org.jline.terminal.TerminalBuilder;
 
-import dev.benmitchell.mcpkg.MCPKGLogger;
 import dev.benmitchell.mcpkg.exceptions.InvalidDirectoryException;
 import dev.benmitchell.mcpkg.exceptions.PackNotDownloadedException;
 import dev.benmitchell.mcpkg.exceptions.PackNotFoundException;
@@ -28,10 +26,24 @@ import dev.benmitchell.mcpkg.vanillatweaks.VTSource;
  * representing the return status of the program. One function call per command
  */
 public class CommandLine {
-    private static int addColourString(StringBuilder builder, String strToColour, Color colour) {
-        String colourString = Ansi.ansi().fg(colour).a(strToColour).reset().toString();
+    private static int addColourString(StringBuilder builder, String strToColour, Color colour, boolean bright,
+            boolean bold) {
+        Ansi ansi = Ansi.ansi();
+        if (bright)
+            ansi = ansi.fgBright(colour);
+        else
+            ansi = ansi.fg(colour);
+
+        if (bold)
+            ansi = ansi.bold();
+
+        String colourString = ansi.a(strToColour).reset().toString();
         builder.append(colourString);
         return strToColour.length();
+    }
+
+    private static int addColourString(StringBuilder builder, String strToColor, Color color) {
+        return addColourString(builder, strToColor, color, false, false);
     }
 
     private static String printPackShort(Pack pack, RemoteSource remoteSource, int maxWidth) throws IOException {
@@ -71,6 +83,29 @@ public class CommandLine {
         } else {
             builder.append(pack.getDescription());
         }
+        return builder.toString();
+    }
+
+    private static String printPackLong(Pack pack, RemoteSource remoteSource) throws IOException {
+        // More data is stored in the remote source version, so find that
+        try {
+            pack = remoteSource.getPack(pack.getPackId());
+        } catch (PackNotFoundException ex) {
+            // Ignore this error, it's probably not managed by this tool
+        }
+
+        StringBuilder builder = new StringBuilder();
+        addColourString(builder, "id: ", Color.DEFAULT, false, true);
+        addColourString(builder, pack.getPackId(), Color.GREEN);
+        addColourString(builder, "\n\tname: ", Color.DEFAULT, false, true);
+        addColourString(builder, pack.getDisplayName(), Color.BLUE);
+        if (!pack.getVersion().equals(new Version())) {
+            addColourString(builder, "\n\tversion: ", Color.DEFAULT, false, true);
+            addColourString(builder, pack.getVersion().toString(), Color.YELLOW);
+        }
+        addColourString(builder, "\n\tdescription: ", Color.DEFAULT, false, true);
+        builder.append(pack.getDescription());
+
         return builder.toString();
     }
 
@@ -235,8 +270,10 @@ public class CommandLine {
      * 
      * @param packIds The IDs of the packs to get information about
      */
-    public static int info(List<String> packIds) {
-        // TODO: Not implemented
-        return 1;
+    public static int info(List<String> packIds) throws IOException {
+        RemoteSource remoteSource = new VTSource();
+        for (Pack pack : remoteSource.getPacks(packIds))
+            System.out.println(printPackLong(pack, remoteSource));
+        return 0;
     }
 }
