@@ -13,8 +13,9 @@ public abstract class VTPack extends Pack {
     private String category;
 
     public VTPack(RemotePack jsonPack, PackType pType, String category) {
-        super("VanillaTweaks." + jsonPack.name, jsonPack.display, jsonPack.description, new Version(jsonPack.version),
-                new ArrayList<String>(), new ArrayList<String>(), pType, Optional.empty());
+        super("VanillaTweaks." + jsonPack.name, jsonPack.display, jsonPack.description,
+                new Version(jsonPack.version), new ArrayList<String>(), new ArrayList<String>(),
+                pType, Optional.empty());
         name = jsonPack.name;
         for (var item : jsonPack.incompatible) {
             incompatible.add(item);

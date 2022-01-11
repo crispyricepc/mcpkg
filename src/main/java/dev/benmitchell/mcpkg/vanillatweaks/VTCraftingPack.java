@@ -14,7 +14,8 @@ public class VTCraftingPack extends VTPack {
     }
 
     @Override
-    public void install() throws IOException, InvalidDirectoryException, PackNotDownloadedException {
+    public void install()
+            throws IOException, InvalidDirectoryException, PackNotDownloadedException {
         installTo(Platform.getDataPacksDir());
     }
 }

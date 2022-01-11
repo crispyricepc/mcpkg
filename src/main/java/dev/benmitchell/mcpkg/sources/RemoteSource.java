@@ -28,12 +28,11 @@ public abstract class RemoteSource extends PackSource {
     }
 
     /**
-     * Checks for updates on the given packs (ignores any given packs that don't
-     * exist on the remote)
+     * Checks for updates on the given packs (ignores any given packs that don't exist on the
+     * remote)
      * 
      * @param packs The pacsk to check for updates with
-     * @return A subset of the given packs that can be updated (with the new
-     *         version)
+     * @return A subset of the given packs that can be updated (with the new version)
      * @throws IOException
      */
     public List<Pack> getUpdatable(List<Pack> packs) throws IOException {

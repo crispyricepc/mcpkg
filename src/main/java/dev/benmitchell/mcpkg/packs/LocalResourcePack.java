@@ -13,7 +13,8 @@ public class LocalResourcePack extends LocalPack {
     }
 
     @Override
-    public void install() throws IOException, InvalidDirectoryException, PackNotDownloadedException {
+    public void install()
+            throws IOException, InvalidDirectoryException, PackNotDownloadedException {
         installTo(Platform.getResourcePacksDir());
     }
 }

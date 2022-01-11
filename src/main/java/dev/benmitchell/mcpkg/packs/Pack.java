@@ -94,8 +94,9 @@ public abstract class Pack {
     protected Optional<File> downloadedData;
     protected boolean installed;
 
-    public Pack(String packId, String displayName, String description, Version version, List<String> dependencies,
-            List<String> incompatible, PackType packType, Optional<File> downloadedData) {
+    public Pack(String packId, String displayName, String description, Version version,
+            List<String> dependencies, List<String> incompatible, PackType packType,
+            Optional<File> downloadedData) {
         this.packId = packId;
         this.displayName = displayName;
         this.description = description;
@@ -150,8 +151,7 @@ public abstract class Pack {
     }
 
     /**
-     * @return The type (mod, datapack, resource pack etc.) that this package
-     *         represents
+     * @return The type (mod, datapack, resource pack etc.) that this package represents
      */
     public PackType getPackType() {
         return packType;
@@ -181,8 +181,7 @@ public abstract class Pack {
     }
 
     /**
-     * Sets the pack to downloaded, with the data being stored in the location at
-     * downloadedData
+     * Sets the pack to downloaded, with the data being stored in the location at downloadedData
      */
     public void setDownloadedData(File downloadedData) {
         this.downloadedData = Optional.of(downloadedData);
@@ -194,15 +193,17 @@ public abstract class Pack {
     public void installTo(Path destination) throws IOException, PackNotDownloadedException {
         MCPKGLogger.log(Level.INFO, "Installing '" + this + "' to '" + destination + "'...");
         Path destFile = destination.resolve(toString() + ".zip");
-        setDownloadedData(
-                Files.move(getDownloadedData().toPath(), destFile, StandardCopyOption.REPLACE_EXISTING).toFile());
+        setDownloadedData(Files
+                .move(getDownloadedData().toPath(), destFile, StandardCopyOption.REPLACE_EXISTING)
+                .toFile());
         installed = true;
     }
 
     /**
      * Installs the pack to a set destination
      */
-    public abstract void install() throws IOException, InvalidDirectoryException, PackNotDownloadedException;
+    public abstract void install()
+            throws IOException, InvalidDirectoryException, PackNotDownloadedException;
 
     /**
      * Removes the pack from its installed location

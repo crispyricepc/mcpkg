@@ -22,12 +22,12 @@ import dev.benmitchell.mcpkg.sources.RemoteSource;
 import dev.benmitchell.mcpkg.vanillatweaks.VTSource;
 
 /**
- * Holds the functions for executing commands. Each function returns an int
- * representing the return status of the program. One function call per command
+ * Holds the functions for executing commands. Each function returns an int representing the return
+ * status of the program. One function call per command
  */
 public class CommandLine {
-    private static int addColourString(StringBuilder builder, String strToColour, Color colour, boolean bright,
-            boolean bold) {
+    private static int addColourString(StringBuilder builder, String strToColour, Color colour,
+            boolean bright, boolean bold) {
         Ansi ansi = Ansi.ansi();
         if (bright)
             ansi = ansi.fgBright(colour);
@@ -46,7 +46,8 @@ public class CommandLine {
         return addColourString(builder, strToColor, color, false, false);
     }
 
-    private static String printPackShort(Pack pack, RemoteSource remoteSource, int maxWidth) throws IOException {
+    private static String printPackShort(Pack pack, RemoteSource remoteSource, int maxWidth)
+            throws IOException {
         // More data is stored in the remote source version, so find that
         try {
             pack = remoteSource.getPack(pack.getPackId());
@@ -73,8 +74,8 @@ public class CommandLine {
 
         if (count >= maxWidth) {
             try {
-                builder.append(
-                        pack.getDescription().substring(0, pack.getDescription().length() - (count - maxWidth) - 3));
+                builder.append(pack.getDescription().substring(0,
+                        pack.getDescription().length() - (count - maxWidth) - 3));
                 builder.append("...");
             } catch (StringIndexOutOfBoundsException ex) {
                 // Do nothing, we just want to catch the exception
@@ -113,7 +114,8 @@ public class CommandLine {
         System.err.print(question + " [Y/n]: ");
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
             String input = reader.readLine();
-            if ((input.length() > 0 && Character.toLowerCase(input.charAt(0)) == 'y') || input.length() == 0)
+            if ((input.length() > 0 && Character.toLowerCase(input.charAt(0)) == 'y')
+                    || input.length() == 0)
                 return true;
         }
         return false;
@@ -122,20 +124,19 @@ public class CommandLine {
     /**
      * Local-source-aware install method
      * 
-     * @param packs        The packs to install
+     * @param packs The packs to install
      * @param remoteSource The remote source to get the packs from
-     * @param confirm      Whether to ask for confirmation when replacing other
-     *                     packs
-     * @throws InvalidDirectoryException  When a pack that requries a specific
-     *                                    directory is installed, and it's not
-     *                                    adhered to
-     * @throws PackNotFoundException      If localSource.hasPack() fails to catch an
-     *                                    outlying case. Treat as a bug
-     * @throws PackNotDownloadedException If a locally installed pack is not
-     *                                    downloaded. Treat as a bug
+     * @param confirm Whether to ask for confirmation when replacing other packs
+     * @throws InvalidDirectoryException When a pack that requries a specific directory is
+     *         installed, and it's not adhered to
+     * @throws PackNotFoundException If localSource.hasPack() fails to catch an outlying case. Treat
+     *         as a bug
+     * @throws PackNotDownloadedException If a locally installed pack is not downloaded. Treat as a
+     *         bug
      */
     private static void installPacks(List<Pack> packs, RemoteSource remoteSource, boolean confirm)
-            throws InvalidDirectoryException, IOException, PackNotFoundException, PackNotDownloadedException {
+            throws InvalidDirectoryException, IOException, PackNotFoundException,
+            PackNotDownloadedException {
         List<Pack> packsToInstall = new ArrayList<Pack>();
 
         // Check version differences between packs
@@ -143,10 +144,10 @@ public class CommandLine {
         for (Pack pack : packs) {
             // If the pack is already installed and its version is >= the version we're
             // trying to install
-            if (localSource.hasPack(pack)
-                    && localSource.getPack(pack.getPackId()).getVersion().compareTo(pack.getVersion()) >= 0) {
-                if (confirm && !askForConfirmation(
-                        pack + " is already installed at the latest version. Do you want to replace?"))
+            if (localSource.hasPack(pack) && localSource.getPack(pack.getPackId()).getVersion()
+                    .compareTo(pack.getVersion()) >= 0) {
+                if (confirm && !askForConfirmation(pack
+                        + " is already installed at the latest version. Do you want to replace?"))
                     // Skip this pack if the user decides to not install
                     continue;
                 // Remove the old pack to prepare for the installation of the new one
@@ -184,8 +185,8 @@ public class CommandLine {
      * 
      * @param packIds The IDs of the packs to install
      */
-    public static int install(List<String> packIds)
-            throws IOException, PackNotDownloadedException, InvalidDirectoryException, PackNotFoundException {
+    public static int install(List<String> packIds) throws IOException, PackNotDownloadedException,
+            InvalidDirectoryException, PackNotFoundException {
         RemoteSource source = new VTSource();
         List<Pack> packs = source.getPacks(packIds);
         installPacks(packs, source, true);
@@ -197,7 +198,8 @@ public class CommandLine {
      * 
      * @param packIds The IDs of the packs to uninstall
      */
-    public static int uninstall(List<String> packIds) throws PackNotDownloadedException, IOException {
+    public static int uninstall(List<String> packIds)
+            throws PackNotDownloadedException, IOException {
         LocalSource source = new LocalSource();
         for (Pack pack : source.getPacks(packIds))
             pack.uninstall();
@@ -207,11 +209,10 @@ public class CommandLine {
     /**
      * Updates one or multiple packs
      * 
-     * @param packIds The IDs of the packs to update. Will update all if no IDs are
-     *                specified
+     * @param packIds The IDs of the packs to update. Will update all if no IDs are specified
      */
-    public static int update(List<String> packIds)
-            throws InvalidDirectoryException, PackNotFoundException, PackNotDownloadedException, IOException {
+    public static int update(List<String> packIds) throws InvalidDirectoryException,
+            PackNotFoundException, PackNotDownloadedException, IOException {
         List<Pack> packsToUpdate;
         LocalSource localSource = new LocalSource();
         if (packIds.size() == 0)
@@ -248,10 +249,11 @@ public class CommandLine {
     /**
      * Searches for packs given a list of keywords
      * 
-     * @param keywords  A list of keywords used to identify one or many packs
+     * @param keywords A list of keywords used to identify one or many packs
      * @param installed Whether to limit the search to only installed packs
      */
-    public static int search(List<String> keywords, boolean installed) throws IOException, PackNotFoundException {
+    public static int search(List<String> keywords, boolean installed)
+            throws IOException, PackNotFoundException {
         PackSource source;
         RemoteSource remoteSource = new VTSource();
         if (installed)

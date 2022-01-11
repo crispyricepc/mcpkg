@@ -48,8 +48,8 @@ public class DownloadManager {
         throw new RuntimeException("entity was null");
     }
 
-    public static void downloadToFile(URL source, File destination, boolean append, String downloadMessage)
-            throws IOException, FileNotFoundException {
+    public static void downloadToFile(URL source, File destination, boolean append,
+            String downloadMessage) throws IOException, FileNotFoundException {
         MCPKGLogger.log(Level.INFO, downloadMessage);
         try (InputStream iStream = source.openStream()) {
             try (OutputStream oStream = new FileOutputStream(destination, append)) {
@@ -60,6 +60,7 @@ public class DownloadManager {
 
     public static void downloadToFile(URL source, File destination, boolean append)
             throws IOException, FileNotFoundException {
-        downloadToFile(source, destination, append, "Downloading '" + source + "' to '" + destination + "'...");
+        downloadToFile(source, destination, append,
+                "Downloading '" + source + "' to '" + destination + "'...");
     }
 }

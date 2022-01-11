@@ -14,11 +14,16 @@ public class MCPKGLogger {
         AnsiConsole.systemInstall();
         LOG_LEVEL_STRINGS = new HashMap<Level, String>();
         LOG_LEVEL_STRINGS.put(Level.ALL, "");
-        LOG_LEVEL_STRINGS.put(Level.TRACE, "[" + Ansi.ansi().fg(Color.BLUE).a("TRACE").reset() + "]");
-        LOG_LEVEL_STRINGS.put(Level.DEBUG, "[" + Ansi.ansi().fg(Color.BLUE).a("DEBUG").reset() + "]");
-        LOG_LEVEL_STRINGS.put(Level.INFO, "[" + Ansi.ansi().fg(Color.GREEN).a("INFO").reset() + "]");
-        LOG_LEVEL_STRINGS.put(Level.WARNING, "[" + Ansi.ansi().fg(Color.YELLOW).a("WARNING").reset() + "]");
-        LOG_LEVEL_STRINGS.put(Level.ERROR, "[" + Ansi.ansi().fg(Color.RED).a("ERROR").reset() + "]");
+        LOG_LEVEL_STRINGS.put(Level.TRACE,
+                "[" + Ansi.ansi().fg(Color.BLUE).a("TRACE").reset() + "]");
+        LOG_LEVEL_STRINGS.put(Level.DEBUG,
+                "[" + Ansi.ansi().fg(Color.BLUE).a("DEBUG").reset() + "]");
+        LOG_LEVEL_STRINGS.put(Level.INFO,
+                "[" + Ansi.ansi().fg(Color.GREEN).a("INFO").reset() + "]");
+        LOG_LEVEL_STRINGS.put(Level.WARNING,
+                "[" + Ansi.ansi().fg(Color.YELLOW).a("WARNING").reset() + "]");
+        LOG_LEVEL_STRINGS.put(Level.ERROR,
+                "[" + Ansi.ansi().fg(Color.RED).a("ERROR").reset() + "]");
         LOG_LEVEL_STRINGS.put(Level.OFF, "");
         AnsiConsole.systemUninstall();
     };

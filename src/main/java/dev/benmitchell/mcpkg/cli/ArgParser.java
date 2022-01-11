@@ -14,8 +14,10 @@ public class ArgParser {
      * @return True if "--flagName" or "-f"
      */
     private static boolean isAFlag(String arg) {
-        return (arg.length() > 2 && arg.substring(0, 2).equals("--") && Character.isAlphabetic(arg.charAt(2)))
-                || (arg.length() == 2 && arg.charAt(0) == '-' && Character.isAlphabetic(arg.charAt(1)));
+        return (arg.length() > 2 && arg.substring(0, 2).equals("--")
+                && Character.isAlphabetic(arg.charAt(2)))
+                || (arg.length() == 2 && arg.charAt(0) == '-'
+                        && Character.isAlphabetic(arg.charAt(1)));
     }
 
     public ArgParser(Map<String, Object> defaultFlags) {
