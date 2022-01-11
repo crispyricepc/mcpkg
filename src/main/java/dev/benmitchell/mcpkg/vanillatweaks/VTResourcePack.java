@@ -14,7 +14,8 @@ public class VTResourcePack extends VTPack {
     }
 
     @Override
-    public void install() throws IOException, InvalidDirectoryException, PackNotDownloadedException {
+    public void install()
+            throws IOException, InvalidDirectoryException, PackNotDownloadedException {
         installTo(Platform.getResourcePacksDir());
     }
 }

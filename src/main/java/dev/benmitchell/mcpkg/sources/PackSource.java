@@ -58,8 +58,7 @@ public abstract class PackSource {
     /**
      * Searches for packs within the source
      * 
-     * @param keywords Keywords / strings of characters that the results could
-     *                 contain
+     * @param keywords Keywords / strings of characters that the results could contain
      * @return The results of the search
      */
     public List<Pack> searchForPacks(List<String> keywords) throws IOException {

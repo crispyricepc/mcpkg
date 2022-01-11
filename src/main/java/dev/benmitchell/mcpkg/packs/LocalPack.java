@@ -12,7 +12,7 @@ public abstract class LocalPack extends Pack {
     /**
      * Creates a new pack object based on a given file
      * 
-     * @param file     The file that the pack is based on
+     * @param file The file that the pack is based on
      * @param packType The type of pack
      * @return A LocalPack that's either a DataPack or a ResourcePack
      */
@@ -34,7 +34,7 @@ public abstract class LocalPack extends Pack {
     }
 
     public LocalPack(String packId, Version version, File downloadedData, PackType packType) {
-        super(packId, packId.split("\\.")[1], "", version, new ArrayList<String>(), new ArrayList<String>(), packType,
-                Optional.of(downloadedData));
+        super(packId, packId.split("\\.")[1], "", version, new ArrayList<String>(),
+                new ArrayList<String>(), packType, Optional.of(downloadedData));
     }
 }

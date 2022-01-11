@@ -32,7 +32,8 @@ public class Platform {
             DATA_PATH = Paths.get(System.getenv("APPDATA"), "mcpkg");
             CONFIG_PATH = DATA_PATH;
         } else if (SystemUtils.IS_OS_MAC) {
-            DOT_MINECRAFT_PATH = Paths.get(System.getenv("HOME"), "Library", "Application Support", "minecraft");
+            DOT_MINECRAFT_PATH =
+                    Paths.get(System.getenv("HOME"), "Library", "Application Support", "minecraft");
             DATA_PATH = Paths.get(System.getenv("HOME"), "Library", "Application Support", "mcpkg");
             CONFIG_PATH = Paths.get(System.getenv("HOME"), "Library", "Preferences", "mcpkg");
         } else {

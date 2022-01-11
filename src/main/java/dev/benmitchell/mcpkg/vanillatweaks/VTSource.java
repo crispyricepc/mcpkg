@@ -80,14 +80,17 @@ public class VTSource extends RemoteSource {
 
         // Download the pack cache if it doesn't exist, or the date last modified on the
         // file is > 1 day
-        for (String typeInitials : new String[] { "rp", "dp", "ct" }) {
-            File packCacheFile = new File(Platform.config.dataPath.toFile(), "vt_" + typeInitials + "categories.json");
-            if (!packCacheFile.exists()
-                    || Calendar.getInstance().getTimeInMillis() - packCacheFile.lastModified() > 1000 * 24 * 60 * 60) {
+        for (String typeInitials : new String[] {"rp", "dp", "ct"}) {
+            File packCacheFile = new File(Platform.config.dataPath.toFile(),
+                    "vt_" + typeInitials + "categories.json");
+            if (!packCacheFile.exists() || Calendar.getInstance().getTimeInMillis()
+                    - packCacheFile.lastModified() > 1000 * 24 * 60 * 60) {
                 try {
-                    DownloadManager.downloadToFile(new URL(
-                            "https://vanillatweaks.net/assets/resources/json/1.17/" + typeInitials + "categories.json"),
-                            packCacheFile, false);
+                    DownloadManager
+                            .downloadToFile(
+                                    new URL("https://vanillatweaks.net/assets/resources/json/1.18/"
+                                            + typeInitials + "categories.json"),
+                                    packCacheFile, false);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -115,7 +118,8 @@ public class VTSource extends RemoteSource {
                             packs.add(new VTResourcePack(pack, category.category));
                             break;
                         default:
-                            throw new RuntimeException("This packtype (" + pType.toString() + ") is not valid");
+                            throw new RuntimeException(
+                                    "This packtype (" + pType.toString() + ") is not valid");
                     }
                 }
             }
@@ -147,7 +151,8 @@ public class VTSource extends RemoteSource {
             postMap.put("packs", packListJson);
 
             // Post request
-            URL requestUrl = new URL("https://vanillatweaks.net/assets/server/zip" + typeString + "s.php");
+            URL requestUrl =
+                    new URL("https://vanillatweaks.net/assets/server/zip" + typeString + "s.php");
             String response;
             try {
                 response = DownloadManager.postRequest(requestUrl, postMap);
@@ -162,7 +167,8 @@ public class VTSource extends RemoteSource {
 
             File downloadedFile = tmpDir.resolve(vtPack + ".zip").toFile();
 
-            DownloadManager.downloadToFile(new URL("https://vanillatweaks.net/" + responseNode.get("link").asText()),
+            DownloadManager.downloadToFile(
+                    new URL("https://vanillatweaks.net/" + responseNode.get("link").asText()),
                     downloadedFile, false, "Downloading '" + pack + "'...");
 
             vtPack.setDownloadedData(downloadedFile);
