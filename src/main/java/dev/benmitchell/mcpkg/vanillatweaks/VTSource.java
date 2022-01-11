@@ -88,7 +88,7 @@ public class VTSource extends RemoteSource {
                 try {
                     DownloadManager
                             .downloadToFile(
-                                    new URL("https://vanillatweaks.net/assets/resources/json/1.17/"
+                                    new URL("https://vanillatweaks.net/assets/resources/json/1.18/"
                                             + typeInitials + "categories.json"),
                                     packCacheFile, false);
                 } catch (IOException ex) {
