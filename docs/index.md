@@ -8,6 +8,10 @@ layout: home
 MCPKG is a package manager for Minecraft resource packs, data packs, and crafting tweaks, powered by
 [vanillatweaks.net](https://vanillatweaks.net).
 
+Support for mods via [Modrinth](https://modrinth.com/) is in the works.
+
+The primary goal of MCPKG is to provide a platform for command line and server users to manage and update instances without having to visit any sites.
+
 ## Downloads
 
 You can manually download the latest release from
@@ -19,9 +23,6 @@ You can manually download the latest release from
 
 If you're on ArchLinux, there's a package available from
 [here](https://aur.archlinux.org/packages/mcpkg/)
-
-### Windows
-
 
 ## Contribute
 
